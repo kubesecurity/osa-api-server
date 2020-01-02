@@ -1,0 +1,4 @@
+git+https://github.com/arajkumar/osa-data-model@setup.py
+Flask
+flask-swagger-ui
+flask_restplus
