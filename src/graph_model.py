@@ -103,7 +103,7 @@ class Traversel:
         return self.addE('reported_cve').from_(from_).to(to)
 
     def affects(self, from_: ReportedCVE, to: Version) -> 'Traversel':
-        return self.addE('reported_cve').from_(from_).to(to)
+        return self.addE('affects').from_(from_).to(to)
 
     def depends_on(self, from_: Version, to: Version) -> 'Traversel':
         return self.addE('depends_on').from_(from_).to(to)

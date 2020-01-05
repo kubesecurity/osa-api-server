@@ -1,25 +1,5 @@
-import src.graph_model import Dependency, Version, Ecosystem, Feedback, ReportedCVE, ProbableCVE
-
-"""
-    "ecosystem": "golang",
-    "repo_name": "Azure/azure-sdk-for-go",
-    "event_type": "IssuesEvent",
-    "status": "closed",
-    "url": "https://github.com/Azure/azure-sdk-for-go/issues/1204",
-    "security_model_flag": 0,
-    "cve_model_flag": 0,
-    "triage_is_security": 0,
-    "triage_is_cve": 0,
-    "triage_feedback_comments": "",
-    "id": 302919731,
-    "number": 1204,
-    "api_url": "https://api.github.com/repos/Azure/azure-sdk-for-go/issues/1204",
-    "created_at": "2018-03-07 00:27:11+00:00",
-    "updated_at": "2019-12-03 09:03:36+00:00",
-    "closed_at": "2019-12-03 09:03:36+00:00",
-    "creator_name": "vladbarosan",
-    "creator_url": "https://github.com/vladbarosan"
-"""
+from src.graph_model import Dependency, Version, Ecosystem, Feedback, ReportedCVE, ProbableCVE, SecurityEvent
+from src.types import *
 
 class IngestionData:
     def __init__(self, json_data):
@@ -59,8 +39,8 @@ class IngestionData:
     @property
     def security_event(self) -> SecurityEvent:
         return SecurityEvent(
-                event_type=self._get_event_type()
-                body='not set'
-                title='not set'
-                event_id=self._payload['id']
+                event_type=self._get_event_type(),
+                body='not set',
+                title='not set',
+                event_id=str(self._payload['id'])
                 )

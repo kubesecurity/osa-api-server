@@ -1,9 +1,10 @@
 from flask import Flask
 from flask_restplus import Api, Namespace, Resource, fields
-
 from app import server
-from model.pcve import pcve
 from flask_restplus import reqparse
+
+from model.pcve import pcve
+from src.ingestion import ingest_data_into_graph
 
 app, api = server.app, server.api
 
@@ -32,7 +33,7 @@ cve_db = [
 ]
 
 @api.route('/api/v1/pcve')
-class Cve(Resource):
+class PCVE(Resource):
 
     @api.marshal_list_with(pcve)
     @api.param('ecosystem', 'Eco System')
@@ -59,8 +60,9 @@ class Cve(Resource):
         print(cve_db)
         return cve_db
 
-    @api.expect(pcve)
+    @api.expect([pcve])
     def post(self):
+        ingest_data_into_graph(api.payload)
         return 'success'
 
     @api.expect(pcve)
