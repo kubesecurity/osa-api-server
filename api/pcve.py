@@ -2,15 +2,10 @@ from flask import Flask
 from flask_restplus import Api, Namespace, Resource, fields
 
 from app import server
-from model.cve import cve
+from model.pcve import pcve
 from flask_restplus import reqparse
 
-
 app, api = server.app, server.api
-
-gocve_api = Namespace('gocve')
-
-api.add_namespace(gocve_api)
 
 parser = reqparse.RequestParser()
 parser.add_argument('ecosystem', type=str, help='Eco System')
@@ -20,7 +15,6 @@ parser.add_argument('fromDate', type=str, help='From Date')
 parser.add_argument('toDate', type=str, help='To Date')
 parser.add_argument('repo', type=str, help='Repository Name')
 parser.add_argument('eventType', type=str, help='Event Type')
-
 
 cve_db = [
     {
@@ -37,25 +31,23 @@ cve_db = [
     },
 ]
 
-@gocve_api.route('/api/v1/gocve')
+@api.route('/api/v1/pcve')
 class Cve(Resource):
 
-    @gocve_api.marshal_list_with(cve)
-    @gocve_api.param('ecosystem', 'Eco System')
-    @gocve_api.param('isCve', 'Is Cve Registered - True/False')
-    @gocve_api.param('feedback', 'Feedback - True/False')
-    @gocve_api.param('fromDate', 'From Date')
-    @gocve_api.param('toDate', 'To Date')
-    @gocve_api.param('repo', 'Repository Name')
-    @gocve_api.param('eventType', 'Event Type - Pull/Issue/Commit')
+    @api.marshal_list_with(pcve)
+    @api.param('ecosystem', 'Eco System')
+    @api.param('isCve', 'Is Cve Registered - True/False')
+    @api.param('feedback', 'Feedback - True/False')
+    @api.param('fromDate', 'From Date')
+    @api.param('toDate', 'To Date')
+    @api.param('repo', 'Repository Name')
+    @api.param('eventType', 'Event Type - Pull/Issue/Commit')
     def get(self):
         args = parser.parse_args()
-        
         #you can remove the code below. Just wrote to test if request params are getting passed
 
         print('query parameter received  ' )
         print(args['ecosystem'])
-        
         for idx, item in enumerate(cve_db):
             item['ecosystem'] = args['ecosystem']
             print('updated item ')
@@ -63,23 +55,17 @@ class Cve(Resource):
             cve_db[idx] = item
             print('updated cve_db ')
             print(cve_db)
-        
         print('final updated version ')
         print(cve_db)
-        
         return cve_db
 
-    @gocve_api.expect(cve)
-    @gocve_api.marshal_list_with(cve)
+    @api.expect(pcve)
     def post(self):
+        return 'success'
 
-        #Insert payload in to db
-        return api.payload
-
-
-    @gocve_api.expect(cve)
-    @gocve_api.marshal_list_with(cve)
-    @gocve_api.doc("Api to update the feedback for probable cve. True/False")
+    @api.expect(pcve)
+    @api.marshal_list_with(pcve)
+    @api.doc("Api to update the feedback for probable cve. True/False")
     def put(self):
 
         #update the feedback text
