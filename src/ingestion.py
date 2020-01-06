@@ -6,9 +6,6 @@ from src.ingestion_data import IngestionData
 gremlin_adapter = GremlinAdapter()
 def _ingest_pcve(pcve):
     g = Traversel()
-    # (fixme) create ecosystem node if not present
-    # (fixme) use ecosystem node as well
-    # n.create_ecosystem_node(ecosystem_name=pcve['ecosystem'])
     query = str(g.add_unique_node(pcve.dependency)
      .add_unique_node(pcve.version)
      .add_unique_node(pcve.security_event)

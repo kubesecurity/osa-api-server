@@ -107,12 +107,14 @@ class Traversel:
         return self
 
     def add_unique_node(self, node: BaseModel, *props: str) -> 'Traversel':
+        # Reference: https://stackoverflow.com/questions/49758417/cosmosdb-graph-upsert-query-pattern
         g0 = Traversel(None).addV(node.vertex_label)
         g1 = Traversel(None).has_node(node, *props)
         g2 = Traversel(None).property(**node.properties)
         return self.append(str(g1)).append('fold()').append('coalesce(unfold(), {})'.format(str(g0))).append(str(g2))
 
     def _add_edge(self, edge_label: str, from_: BaseModel, to: BaseModel) -> 'Traversel':
+        # Reference: https://stackoverflow.com/questions/52447308/add-edge-if-not-exist-using-gremlin
         g = Traversel(None)
         g.has_node(from_).as_(edge_label).has_node(to).append(
                 "coalesce(__.inE('{label}').where(outV().as('{label}')), addE('{label}').from('{label}'))".format(label=edge_label))
@@ -132,29 +134,3 @@ class Traversel:
 
     def depends_on(self, from_: Version, to: Version) -> 'Traversel':
         return self._add_edge('depends_on', from_, to)
-
-    @classmethod
-    def _create_unique_node(cls, node: BaseModel, var: str, *props: str) -> str:
-        g = Traversel().add_unique_node(dependency, ('vertex_label', *props))
-        query_str = '{var} = {query}'.format(var=var, query=str(g))
-        return query_str
-
-    @classmethod
-    def create_dependency_node(cls, node: Dependency, var: str='dependency') -> str:
-        return cls._create_unique_node(node, var, 'dependency_name')
-
-    @classmethod
-    def create_version_node(cls, node: Version, var: str='version') -> str:
-        return cls._create_unique_node(node, var, 'dependency_name', 'dependency_version')
-
-    @classmethod
-    def create_security_event(cls, node: SecurityEvent, var: str='security') -> str:
-        return cls._create_unique_node(node, var, 'event_id')
-
-    @classmethod
-    def create_probable_cve(cls, node: ProbableCVE, var: str='pcve') -> str:
-        return cls._create_unique_node(node, var, 'probable_vuln_id')
-
-    @classmethod
-    def concat_queries(*query) -> str:
-        return ';'.join(query)

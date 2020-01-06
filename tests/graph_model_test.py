@@ -20,14 +20,17 @@ def test_add_node_dependency_node():
 def test_has_version_traversal():
     g = Traversel('g')
     dependency = Dependency(dependency_name='foo', dependency_path='http://foo.bar/zoo.git')
-    g.add_node(dependency).as_('from').add_node(dependency).as_('to').has_version('from', 'to').next()
+    g.add_node(dependency).add_node(dependency).has_version(dependency, dependency).next()
     assert(
         "g.addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
         ".property('dependency_name', '{dependency_name}').property('dependency_path', '{dependency_path}')"
-        ".as('from').addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
+        ".addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
         ".property('dependency_name', '{dependency_name}').property('dependency_path', '{dependency_path}')"
-        ".as('to').addE('has_version').from('from').to('to')"
-        ".next()"
+        ".V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
+        ".has('dependency_name', '{dependency_name}').has('dependency_path', '{dependency_path}')"
+        ".as('has_version').V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
+        ".has('dependency_name', '{dependency_name}').has('dependency_path', '{dependency_path}')"
+        ".coalesce(__.inE('has_version').where(outV().as('has_version')), addE('has_version').from('has_version')).next()"
         .format(**dependency.__dict__) == str(g)
     )
 
