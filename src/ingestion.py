@@ -9,13 +9,13 @@ def _ingest_pcve(pcve):
     # (fixme) create ecosystem node if not present
     # (fixme) use ecosystem node as well
     # n.create_ecosystem_node(ecosystem_name=pcve['ecosystem'])
-    query = str(g.addV(pcve.dependency).as_('dependency')
-     .addV(pcve.version).as_('version')
-     .addV(pcve.security_event).as_('security_event')
-     .addV(pcve.probable_cve).as_('pcve')
-     .has_version('dependency', 'version')
-     .triaged_to('security_event', 'pcve')
-     .affects('pcve', 'version')
+    query = str(g.add_unique_node(pcve.dependency)
+     .add_unique_node(pcve.version)
+     .add_unique_node(pcve.security_event)
+     .add_unique_node(pcve.probable_cve)
+     .has_version(pcve.dependency, pcve.version)
+     .triaged_to(pcve.security_event, pcve.probable_cve)
+     .affects(pcve.probable_cve, pcve.version)
      .next())
     return gremlin_adapter.execute_query(query)
 

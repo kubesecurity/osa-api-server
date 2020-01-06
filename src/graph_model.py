@@ -53,15 +53,11 @@ class SecurityEvent(BaseModel):
 
 class Traversel:
     def __init__(self, name='g'):
-        self._query: List[str] = [ name ];
+        self._query: List[str] = [name] if type(name) is str else [];
 
     def append(self, query: str) -> 'Traversel':
         self._query.append(query)
         return self
-
-    def addV(self, node: 'BaseModel') -> 'Traversel':
-        kwargs = node.properties
-        return self.addVLabel(node.vertex_label).property(**kwargs)
 
     def as_(self, label: str) -> 'Traversel':
         return self.append("as('{}')".format(label))
@@ -75,6 +71,9 @@ class Traversel:
     def to(self, as_label) -> 'Traversel':
         return self.append("to('{}')".format(as_label))
 
+    def V(self) -> 'Traversel':
+        return self.append("V()")
+
     def query(self) -> List[str]:
         return self._query
 
@@ -84,7 +83,7 @@ class Traversel:
     def addE(self, label_name: str) -> 'Traversel':
         return self.append("addE('{}')".format(label_name))
 
-    def addVLabel(self, label_name: str) -> 'Traversel':
+    def addV(self, label_name: str) -> 'Traversel':
         return self.append("addV('{}')".format(label_name))
 
     def property(self, **kwargs) -> 'Traversel':
@@ -93,18 +92,69 @@ class Traversel:
             self.append("property('{}', '{}')".format(str(p), str(val)))
         return self
 
+    def add_node(self, node: BaseModel) -> 'Traversel':
+        kwargs = node.properties
+        return self.addV(node.vertex_label).property(**kwargs)
+
+    def has_node(self, node: BaseModel, *props: str) -> 'Traversel':
+        props = None if len(props) is 0 else props
+        self.append("V()")
+        self.append("hasLabel('{}')".format(node.vertex_label))
+        for k, v in node.properties.items():
+            if props is not None and k not in props:
+                continue
+            self.append("has('{}', '{}')".format(str(k), str(v)))
+        return self
+
+    def add_unique_node(self, node: BaseModel, *props: str) -> 'Traversel':
+        g0 = Traversel(None).addV(node.vertex_label)
+        g1 = Traversel(None).has_node(node, *props)
+        g2 = Traversel(None).property(**node.properties)
+        return self.append(str(g1)).append('fold()').append('coalesce(unfold(), {})'.format(str(g0))).append(str(g2))
+
+    def _add_edge(self, edge_label: str, from_: BaseModel, to: BaseModel) -> 'Traversel':
+        g = Traversel(None)
+        g.has_node(from_).as_(edge_label).has_node(to).append(
+                "coalesce(__.inE('{label}').where(outV().as('{label}')), addE('{label}').from('{label}'))".format(label=edge_label))
+        return self.append(str(g))
+
     def has_version(self, from_: Dependency, to: Version) -> 'Traversel':
-        return self.addE('has_version').from_(from_).to(to)
+        return self._add_edge('has_version', from_, to)
 
     def triaged_to(self, from_: SecurityEvent, to: ProbableCVE) -> 'Traversel':
-        return self.addE('triaged_to').from_(from_).to(to)
+        return self._add_edge('triaged_to', from_, to)
 
     def reported_cve(self, from_: ProbableCVE, to: ReportedCVE) -> 'Traversel':
-        return self.addE('reported_cve').from_(from_).to(to)
+        return self._add_edge('reported_cve', from_, to)
 
     def affects(self, from_: ReportedCVE, to: Version) -> 'Traversel':
-        return self.addE('affects').from_(from_).to(to)
+        return self._add_edge('affects', from_, to)
 
     def depends_on(self, from_: Version, to: Version) -> 'Traversel':
-        return self.addE('depends_on').from_(from_).to(to)
+        return self._add_edge('depends_on', from_, to)
 
+    @classmethod
+    def _create_unique_node(cls, node: BaseModel, var: str, *props: str) -> str:
+        g = Traversel().add_unique_node(dependency, ('vertex_label', *props))
+        query_str = '{var} = {query}'.format(var=var, query=str(g))
+        return query_str
+
+    @classmethod
+    def create_dependency_node(cls, node: Dependency, var: str='dependency') -> str:
+        return cls._create_unique_node(node, var, 'dependency_name')
+
+    @classmethod
+    def create_version_node(cls, node: Version, var: str='version') -> str:
+        return cls._create_unique_node(node, var, 'dependency_name', 'dependency_version')
+
+    @classmethod
+    def create_security_event(cls, node: SecurityEvent, var: str='security') -> str:
+        return cls._create_unique_node(node, var, 'event_id')
+
+    @classmethod
+    def create_probable_cve(cls, node: ProbableCVE, var: str='pcve') -> str:
+        return cls._create_unique_node(node, var, 'probable_vuln_id')
+
+    @classmethod
+    def concat_queries(*query) -> str:
+        return ';'.join(query)

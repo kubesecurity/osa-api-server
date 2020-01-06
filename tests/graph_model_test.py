@@ -5,10 +5,10 @@ def test_empty_traversel():
     g = Traversel('g')
     assert 'g' == str(g)
 
-def test_addV_dependency_node():
+def test_add_node_dependency_node():
     g = Traversel('g')
     dependency = Dependency(dependency_name='foo', dependency_path='http://foo.bar/zoo.git')
-    g.addV(dependency).next()
+    g.add_node(dependency).next()
     assert(
         "g.addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
         ".property('dependency_name', '{dependency_name}')"
@@ -20,7 +20,7 @@ def test_addV_dependency_node():
 def test_has_version_traversal():
     g = Traversel('g')
     dependency = Dependency(dependency_name='foo', dependency_path='http://foo.bar/zoo.git')
-    g.addV(dependency).as_('from').addV(dependency).as_('to').has_version('from', 'to').next()
+    g.add_node(dependency).as_('from').add_node(dependency).as_('to').has_version('from', 'to').next()
     assert(
         "g.addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
         ".property('dependency_name', '{dependency_name}').property('dependency_path', '{dependency_path}')"
@@ -31,4 +31,27 @@ def test_has_version_traversal():
         .format(**dependency.__dict__) == str(g)
     )
 
+def test_add_unique_node():
+    class Foo(BaseModel):
+        vertex_label: str='foo'
+        foo: str
+    g = Traversel('g')
+    foo = Foo(foo='bar')
+    g.add_unique_node(foo)
+    assert(
+        "g.V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}').has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}')).property('vertex_label', '{vertex_label}').property('foo', '{foo}')"
+        .format(**foo.__dict__) == str(g)
+    )
 
+def test_add_unique_node_with_key():
+    class Foo(BaseModel):
+        vertex_label: str='foo'
+        foo: str
+        bar: str
+    g = Traversel('g')
+    foo = Foo(foo='bar', bar='zoo')
+    g.add_unique_node(foo, 'foo', 'bla')
+    assert(
+        "g.V().hasLabel('{vertex_label}').has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}')).property('vertex_label', '{vertex_label}').property('foo', '{foo}').property('bar', '{bar}')"
+        .format(**foo.__dict__) == str(g)
+    )
