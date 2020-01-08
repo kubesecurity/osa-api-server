@@ -1,7 +1,10 @@
+import re
 from src.graph_model import Dependency, Version, Ecosystem, Feedback, ReportedCVE, ProbableCVE, SecurityEvent
 from src.types import *
 
 class IngestionData:
+    _URL_PATTERN = re.compile(r'[:/]+')
+
     def __init__(self, json_data):
         self._payload = json_data
 
@@ -9,8 +12,12 @@ class IngestionData:
     def dependency(self) -> Dependency:
         return Dependency(
                 dependency_name=self._payload['repo_name'],
-                dependency_path=self._payload['url']
+                dependency_path=self._get_dependency_path()
                 )
+
+    def _get_dependency_path(self):
+        components = self._URL_PATTERN.split(self._payload['url'])
+        return '%s://%s/%s/%s' % (components[0], components[1], components[2] , components[3])
 
     @property
     def version(self) -> Version:
@@ -40,7 +47,7 @@ class IngestionData:
     def security_event(self) -> SecurityEvent:
         return SecurityEvent(
                 event_type=self._get_event_type(),
-                body='not set',
-                title='not set',
+                body=self._payload['url'],
+                title=self._payload['url'],
                 event_id=str(self._payload['id'])
                 )

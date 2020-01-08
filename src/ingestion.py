@@ -1,9 +1,7 @@
-from gremlin_connect.gremlin_adapter import GremlinAdapter
-
 from src.graph_model import Traversel
 from src.ingestion_data import IngestionData
+from src.gremlin import GREMLIN
 
-gremlin_adapter = GremlinAdapter()
 def _ingest_pcve(pcve):
     g = Traversel()
     query = str(g.add_unique_node(pcve.dependency)
@@ -14,7 +12,7 @@ def _ingest_pcve(pcve):
      .triaged_to(pcve.security_event, pcve.probable_cve)
      .affects(pcve.probable_cve, pcve.version)
      .next())
-    return gremlin_adapter.execute_query(query)
+    return GREMLIN.execute_query(query)
 
 def ingest_data_into_graph(data):
     for pcve in data:
