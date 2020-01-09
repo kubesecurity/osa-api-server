@@ -26,12 +26,13 @@ locustio==0.13.2          # via locust
 markupsafe==1.1.1         # via jinja2
 more-itertools==8.0.2     # via zipp
 msgpack-python==0.5.6     # via locustio
-git+https://github.com/arajkumar/osa-data-model@setup.py
+git+https://github.com/fabric8-analytics/osa-data-model@master
 pyrsistent==0.15.6        # via jsonschema
+python-dateutil==2.8.1
 pytz==2019.3              # via flask-restplus
 pyzmq==18.1.1             # via locustio
 requests==2.22.0          # via locustio
-six==1.13.0               # via flask-restplus, geventhttpclient-wheels, jsonschema, locustio, pyrsistent
+six==1.13.0               # via flask-restplus, geventhttpclient-wheels, jsonschema, locustio, pyrsistent, python-dateutil
 urllib3==1.25.7           # via requests
 werkzeug==0.16.0          # via flask
 zipp==0.6.0               # via importlib-metadata
