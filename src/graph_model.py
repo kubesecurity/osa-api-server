@@ -50,6 +50,10 @@ class SecurityEvent(BaseModel):
     body: str
     title: str
     event_id: str
+    created_at: int # iso8601 datetime
+    updated_at: int # iso8601 datetime
+    closed_at: int # iso8601 datetime
+
 
 class Traversel:
     def __init__(self, name='g'):
@@ -86,10 +90,17 @@ class Traversel:
     def addV(self, label_name: str) -> 'Traversel':
         return self.append("addV('{}')".format(label_name))
 
+    @staticmethod
+    def _value_encoding(val):
+        if type(val) in (int, float):
+            return "{}".format(str(val))
+        else:
+            return "'{}'".format(str(val))
+
     def property(self, **kwargs) -> 'Traversel':
         """Use a variable size list of properties to get back a .property() querystring."""
-        for p, val in kwargs.items():
-            self.append("property('{}', '{}')".format(str(p), str(val)))
+        for k, v in kwargs.items():
+            self.append("property('{}', {})".format(str(k), self._value_encoding(v)))
         return self
 
     def add_node(self, node: BaseModel) -> 'Traversel':
@@ -103,7 +114,7 @@ class Traversel:
         for k, v in node.properties.items():
             if props is not None and k not in props:
                 continue
-            self.append("has('{}', '{}')".format(str(k), str(v)))
+            self.append("has('{}', {})".format(str(k), self._value_encoding(v)))
         return self
 
     def add_unique_node(self, node: BaseModel, *props: str) -> 'Traversel':
@@ -134,3 +145,6 @@ class Traversel:
 
     def depends_on(self, from_: Version, to: Version) -> 'Traversel':
         return self._add_edge('depends_on', from_, to)
+
+    def date_range_query(self, from_date: int, to_date: int) -> 'Traversel':
+        pass

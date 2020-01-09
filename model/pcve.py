@@ -10,9 +10,9 @@ pcve = server.api.model('PCVE', {
     'id': fields.String(description = 'Event Id'),
     'number': fields.Integer('PR/Issue number'),
     'api_url': fields.Url(description = 'Github API'),
-    'created_at': fields.DateTime(dt_format='rfc822'),
-    'updated_at': fields.DateTime(dt_format='rfc822'),
-    'closed_at': fields.DateTime(dt_format='rfc822'),
+    'created_at': fields.DateTime(dt_format='iso8601'),
+    'updated_at': fields.DateTime(dt_format='iso8601'),
+    'closed_at': fields.DateTime(dt_format='iso8601'),
     'creator_name': fields.String,
     'creator_url': fields.Url(description = 'Creator Url'),
 })

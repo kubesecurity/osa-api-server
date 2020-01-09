@@ -46,6 +46,11 @@ def test_add_unique_node():
         .format(**foo.__dict__) == str(g)
     )
 
+def test_add_with_typed_properties():
+    g = Traversel('g')
+    g.property(foo=1, bar="1", jazz=1.1)
+    assert("g.property('foo', 1).property('bar', '1').property('jazz', 1.1)" == str(g))
+
 def test_add_unique_node_with_key():
     class Foo(BaseModel):
         vertex_label: str='foo'

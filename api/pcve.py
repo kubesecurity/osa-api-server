@@ -3,7 +3,7 @@ from flask_restplus import Api, Resource, fields
 from app import server
 from flask_restplus import reqparse
 
-from model.pcve import pcve, get_pve_results
+from model.pcve import pcve
 from src.ingestion import ingest_data_into_graph
 
 app, api = server.app, server.api
@@ -24,13 +24,13 @@ class PCVE(Resource):
     @api.marshal_list_with(pcve)
     @api.doc("API to list probable CVEs")
     def get(self):
-        pass
+        query_graph(parser.parse_args())
 
     @api.expect([pcve])
     @api.doc("API to ingest data into DB")
     def post(self):
         ingest_data_into_graph(api.payload)
-        return 'success'
+        return { 'status': 'success' }
 
     @api.expect(pcve)
     @api.marshal_list_with(pcve)

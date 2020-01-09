@@ -1,12 +1,14 @@
 import re
 from src.graph_model import Dependency, Version, Ecosystem, Feedback, ReportedCVE, ProbableCVE, SecurityEvent
 from src.types import *
+from dateutil.parser import isoparse
 
 class IngestionData:
     _URL_PATTERN = re.compile(r'[:/]+')
 
     def __init__(self, json_data):
         self._payload = json_data
+        self._sec = None
 
     @property
     def dependency(self) -> Dependency:
@@ -15,14 +17,31 @@ class IngestionData:
                 dependency_path=self._get_dependency_path()
                 )
 
-    def _get_dependency_path(self):
+    def _timestamp(self, field_name: str) -> int:
+        return int(isoparse(self._payload[field_name]).timestamp())
+
+    def _updated_at(self) -> int:
+        return self._timestamp('updated_at')
+
+    def _closed_at(self) -> int:
+        return self._timestamp('closed_at')
+
+    def _created_at(self) -> int:
+        return self._timestamp('created_at')
+
+    def _version_str(self) -> str:
+        # (fixme) As of now consider created time as version. It has to be
+        # mapped to a proper semantic version of a given package.
+        return str(self._created_at())
+
+    def _get_dependency_path(self) -> str:
         components = self._URL_PATTERN.split(self._payload['url'])
         return '%s://%s/%s/%s' % (components[0], components[1], components[2] , components[3])
 
     @property
     def version(self) -> Version:
         return Version(
-                version=self._payload['created_at'],
+                version=self._version_str(),
                 dependency_name=self._payload['repo_name']
                 )
 
@@ -45,9 +64,13 @@ class IngestionData:
 
     @property
     def security_event(self) -> SecurityEvent:
-        return SecurityEvent(
+        self._sec = self._sec or SecurityEvent(
                 event_type=self._get_event_type(),
                 body=self._payload['url'],
                 title=self._payload['url'],
-                event_id=str(self._payload['id'])
+                event_id=str(self._payload['id']),
+                created_at=self._created_at(),
+                updated_at=self._updated_at(),
+                closed_at=self._closed_at()
                 )
+        return self._sec
