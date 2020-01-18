@@ -1,12 +1,11 @@
-from typing import get_type_hints
-from typing import List
+from typing import get_type_hints, List
 from src.types import EventType, Severity, FeedBackType
 
 class BaseModel:
     def __init__(self, **kwargs):
         type_hints = get_type_hints(self)
         for k, v in kwargs.items():
-            assert type_hints[k] == type(v)
+            assert type_hints[k] == type(v) or v is None
 
         self.vertex_label = self.__class__.vertex_label
         self.properties = {'vertex_label': self.vertex_label, **kwargs}
@@ -97,22 +96,35 @@ class Traversel:
         else:
             return "'{}'".format(str(val))
 
+    def hasLabel(self, label: str) -> 'Traversel':
+        # (fixme) as of supports one arg
+        return self.append("hasLabel('{}')".format(label))
+
+    def has(self, **kwargs) -> 'Traversel':
+        return self._props('has', **kwargs)
+
     def property(self, **kwargs) -> 'Traversel':
         """Use a variable size list of properties to get back a .property() querystring."""
-        for k, v in kwargs.items():
-            self.append("property('{}', {})".format(str(k), self._value_encoding(v)))
-        return self
+        return self._props('property', **kwargs)
 
     def add_node(self, node: BaseModel) -> 'Traversel':
         kwargs = node.properties
         return self.addV(node.vertex_label).property(**kwargs)
 
+    def _props(self, type_: str, **kwargs) -> 'Traversel':
+        for k, v in ((k, v) for (k, v) in kwargs.items() if v is not None):
+            self.append("{}('{}', {})".format(type_, str(k), self._value_encoding(v)))
+        return self
+
+    def valueMap(self) -> 'Traversel':
+        return self.append('valueMap()')
+
     def has_node(self, node: BaseModel, *props: str) -> 'Traversel':
+        # (fixme) Use has(...)
         props = None if len(props) is 0 else props
-        self.append("V()")
-        self.append("hasLabel('{}')".format(node.vertex_label))
+        self.V().hasLabel(node.vertex_label)
         for k, v in node.properties.items():
-            if props is not None and k not in props:
+            if props is not None and k not in props or v is None:
                 continue
             self.append("has('{}', {})".format(str(k), self._value_encoding(v)))
         return self
@@ -146,5 +158,3 @@ class Traversel:
     def depends_on(self, from_: Version, to: Version) -> 'Traversel':
         return self._add_edge('depends_on', from_, to)
 
-    def date_range_query(self, from_date: int, to_date: int) -> 'Traversel':
-        pass

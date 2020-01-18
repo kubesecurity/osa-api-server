@@ -1,7 +1,7 @@
 import re
 from src.graph_model import Dependency, Version, Ecosystem, Feedback, ReportedCVE, ProbableCVE, SecurityEvent
 from src.types import *
-from dateutil.parser import isoparse
+from src.parse_datetime import from_date_str
 
 class IngestionData:
     _URL_PATTERN = re.compile(r'[:/]+')
@@ -17,8 +17,11 @@ class IngestionData:
                 dependency_path=self._get_dependency_path()
                 )
 
-    def _timestamp(self, field_name: str) -> int:
-        return int(isoparse(self._payload[field_name]).timestamp())
+    def _timestamp(self, field_name: str):
+        try:
+            return from_date_str(self._payload[field_name])
+        except:
+            return None
 
     def _updated_at(self) -> int:
         return self._timestamp('updated_at')

@@ -1,10 +1,11 @@
 from flask import Flask
-from flask_restplus import Api, Resource, fields
+from flask_restplus import Resource
 from app import server
 from flask_restplus import reqparse
 
-from model.pcve import pcve
+from model.pcve import POST_PCVE, GET_PCVE, PUT_FEEDBACK
 from src.ingestion import ingest_data_into_graph
+from src.query_graph import query_graph
 
 app, api = server.app, server.api
 
@@ -21,22 +22,19 @@ parser.add_argument('event_type', type=str, help='Event type')
 class PCVE(Resource):
 
     @api.expect(parser)
-    @api.marshal_list_with(pcve)
+    @api.marshal_list_with(GET_PCVE)
     @api.doc("API to list probable CVEs")
     def get(self):
-        query_graph(parser.parse_args())
+        return query_graph(parser.parse_args())
 
-    @api.expect([pcve])
+    @api.expect([POST_PCVE])
     @api.doc("API to ingest data into DB")
     def post(self):
-        ingest_data_into_graph(api.payload)
-        return { 'status': 'success' }
+        return ingest_data_into_graph(api.payload)
 
-    @api.expect(pcve)
-    @api.marshal_list_with(pcve)
+    @api.expect(PUT_FEEDBACK)
     @api.doc("API to update the feedback for probable cve. True/False")
     def put(self):
-
-        #update the feedback text
-        return api.payload
+        # todo
+        pass
 

@@ -17,3 +17,4 @@ def _ingest_pcve(pcve):
 def ingest_data_into_graph(data):
     for pcve in data:
         _ingest_pcve(IngestionData(pcve))
+    return { 'status': 'success' }
