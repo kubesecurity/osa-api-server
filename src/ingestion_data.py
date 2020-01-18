@@ -71,6 +71,8 @@ class IngestionData:
                 event_type=self._get_event_type(),
                 body=self._payload['url'],
                 title=self._payload['url'],
+                url=self._payload['url'],
+                status=self._payload['status'],
                 event_id=str(self._payload['id']),
                 created_at=self._created_at(),
                 updated_at=self._updated_at(),

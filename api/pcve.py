@@ -22,7 +22,7 @@ parser.add_argument('event_type', type=str, help='Event type')
 class PCVE(Resource):
 
     @api.expect(parser)
-    @api.marshal_list_with(GET_PCVE)
+    @api.marshal_list_with(GET_PCVE, skip_none=True)
     @api.doc("API to list probable CVEs")
     def get(self):
         return query_graph(parser.parse_args())

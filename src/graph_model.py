@@ -48,6 +48,8 @@ class SecurityEvent(BaseModel):
     event_type: EventType
     body: str
     title: str
+    url: str
+    status: str
     event_id: str
     created_at: int # iso8601 datetime
     updated_at: int # iso8601 datetime
