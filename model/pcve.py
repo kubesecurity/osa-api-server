@@ -39,13 +39,16 @@ GET_PCVE = server.api.model('GET_PCVE', {
     'event_type': fields.String(attribute='security_event.event_type', description='Event Type', enum=EventType._member_names_),
     'status': fields.String(attribute='security_event.status', description='Status'),
     'url': fields.String(attribute='security_event.url', description='url'),
-    'probable_vuln_id': fields.String(attribute='probable_vulnerability.probable_vuln_id', description='Event Id'),
+    'event_id': fields.String(attribute='security_event.event_id', description='Event Id from Github'),
+    'probable_vuln_id': fields.String(attribute='probable_vulnerability.probable_vuln_id', description='Probable vulnerability ID'),
     'created_at': ISO8601Format(attribute='security_event.created_at'),
     'updated_at': ISO8601Format(attribute='security_event.updated_at'),
     'closed_at': ISO8601Format(attribute='security_event.closed_at'),
 })
 
 PUT_FEEDBACK = server.api.model('FEEDBACK', {
+    'event_id': fields.String(description='Event ID from Github'),
     'feedback': fields.String(description='Feedback type', enum=FeedBackType._member_names_),
+    'comments': fields.String(description='Feedback text'),
     'identified_cve': fields.String(description='Actual CVE details if exists')
 })
