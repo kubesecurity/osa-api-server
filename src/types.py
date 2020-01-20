@@ -10,7 +10,9 @@ class EventType(Enum):
     ISSUE = "ISSUE"
     PULL_REQUEST = "PULL_REQUEST"
     COMMIT = "COMMIT"
-
+    # (fixme) It has to be removed once ingestion data is corrected
+    IssuesEvent = ISSUE
+    PullRequestEvent = PULL_REQUEST
 
 class Severity(Enum):
     """Denote the severity of an identified CVE."""

@@ -1,8 +1,8 @@
-from flask_restplus import fields
+from flask_restplus import fields, reqparse
 from app import server
 
-from src.types import FeedBackType
-from src.parse_datetime import to_date_str
+from src.types import FeedBackType, EventType
+from src.parse_datetime import to_date_str, from_date_str
 
 POST_PCVE = server.api.model('PCVE', {
     'ecosystem': fields.String(description='Ecosystem'),
@@ -24,10 +24,19 @@ class ISO8601Format(fields.Raw):
     def format(self, value):
         return to_date_str(value)
 
+parser = reqparse.RequestParser()
+parser.add_argument('ecosystem', type=str, help='Ecosystem')
+parser.add_argument('is_cve', type=bool, help='Is actually a CVE ?')
+parser.add_argument('feedback', type=bool, help='Feedback updated true/false')
+parser.add_argument('from_date', type=from_date_str, help='Updated range - from')
+parser.add_argument('to_date', type=from_date_str, help='Updated range - to')
+parser.add_argument('repo', type=str, help='Repository name')
+parser.add_argument('event_type', type=str, choices=(EventType._member_names_), help='Event type')
+
 GET_PCVE = server.api.model('GET_PCVE', {
     'ecosystem': fields.String(description='Ecosystem'),
     'repo_name': fields.String(attribute='dependency.dependency_name', description='Repository Name'),
-    'event_type': fields.String(attribute='security_event.event_type', description='Event Type'),
+    'event_type': fields.String(attribute='security_event.event_type', description='Event Type', enum=EventType._member_names_),
     'status': fields.String(attribute='security_event.status', description='Status'),
     'url': fields.String(attribute='security_event.url', description='url'),
     'probable_vuln_id': fields.String(attribute='probable_vulnerability.probable_vuln_id', description='Event Id'),

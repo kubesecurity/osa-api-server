@@ -57,18 +57,10 @@ class IngestionData:
     def ecosystem(self) -> Ecosystem:
         return Ecosystem(ecosystem_name=self._payload['ecosystem'])
 
-    def _get_event_type(self) -> EventType:
-        event = self._payload['event_type']
-        if event == 'IssuesEvent':
-            return EventType.ISSUE
-        elif event == 'PullRequestEvent':
-            return EventType.PULL_REQUEST
-        raise Exception('Unknown event type = {}' % event)
-
     @property
     def security_event(self) -> SecurityEvent:
         self._sec = self._sec or SecurityEvent(
-                event_type=self._get_event_type(),
+                event_type=EventType[self._payload['event_type']],
                 body=self._payload['url'],
                 title=self._payload['url'],
                 url=self._payload['url'],

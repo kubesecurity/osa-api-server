@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import get_type_hints, List
 from src.types import EventType, Severity, FeedBackType
 
@@ -95,6 +96,8 @@ class Traversel:
     def _value_encoding(val):
         if type(val) in (int, float):
             return "{}".format(str(val))
+        if isinstance(val, Enum):
+            return Traversel._value_encoding(val.value)
         else:
             return "'{}'".format(str(val))
 

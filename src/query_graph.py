@@ -2,7 +2,7 @@ from typing import get_type_hints, Dict, List
 
 from gremlin_python.structure.io import graphsonV3d0
 
-from src.graph_model import SecurityEvent, Dependency, Traversel
+from src.graph_model import SecurityEvent, EventType, Dependency, Traversel
 from src.parse_datetime import from_date_str
 from src.gremlin import GREMLIN
 
@@ -32,9 +32,10 @@ def _get_security_event_query_filters(args: Dict) -> str:
     from_date = args['from_date']
     to_date = args['to_date']
     if from_date and to_date:
-        from_date = from_date_str(from_date)
-        to_date = from_date_str(to_date)
         query.append('''has('updated_at', between({from_date}, {to_date}))'''.format(from_date=from_date, to_date=to_date))
+    event_type = args['event_type']
+    if event_type:
+        query.append('''has('event_type', '{event_type}')'''.format(event_type=EventType[event_type].value))
     return 'identity()' if len(query) is 0 else '.'.join(query)
 
 def _get_probable_vul_query_filters(args: Dict) -> str:
@@ -53,7 +54,6 @@ def _get_dependency_query_filters(args: Dict) -> str:
 def _to_response_model(gremlin_response: Dict) -> Dict:
     reader = graphsonV3d0.GraphSONReader()
     rsp = reader.toObject(gremlin_response)
-    print(rsp)
     return rsp['result']['data']
 
 def query_graph(args: Dict):
