@@ -1,4 +1,4 @@
-from src.graph_model import Traversel
+from src.graph_traversel import Traversel
 from src.ingestion_data import IngestionData
 from src.gremlin import GREMLIN
 

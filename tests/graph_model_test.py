@@ -1,5 +1,6 @@
 import pytest
 from src.graph_model import *
+from src.graph_traversel import *
 
 def test_empty_traversel():
     g = Traversel('g')
