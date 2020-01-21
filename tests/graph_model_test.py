@@ -59,14 +59,15 @@ def test_property_with_none_value():
 
 def test_add_unique_node_with_key():
     class Foo(BaseModel):
-        vertex_label: str='foo'
+        vertex_label: str = 'foo'
+        primary_key = ('foo', 'bla')
         foo: str
         bar: str
     g = Traversel('g')
     foo = Foo(foo='bar', bar='zoo')
-    g.add_unique_node(foo, 'foo', 'bla')
+    g.add_unique_node(foo)
     assert(
-        "g.V().hasLabel('{vertex_label}').has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}')).property('vertex_label', '{vertex_label}').property('foo', '{foo}').property('bar', '{bar}')"
+        "g.V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}').has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}')).property('vertex_label', '{vertex_label}').property('foo', '{foo}').property('bar', '{bar}')"
         .format(**foo.__dict__) == str(g)
     )
 

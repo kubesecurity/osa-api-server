@@ -1,4 +1,4 @@
-from typing import get_type_hints
+from typing import get_type_hints, Tuple
 from src.types import EventType, Severity, FeedBackType
 
 class BaseModel:
@@ -9,6 +9,14 @@ class BaseModel:
 
         self.vertex_label = self.__class__.vertex_label
         self.properties = {'vertex_label': self.vertex_label, **kwargs}
+        primary_key = hasattr(self, 'primary_key')
+        if primary_key:
+            primary_key = ('vertex_label', ) + self.primary_key
+        else:
+            primary_key = tuple(self.properties.keys())
+        assert isinstance(primary_key, tuple)
+        self.primary_key = primary_key
+
         self.__dict__.update(kwargs)
 
 class Dependency(BaseModel):
@@ -33,10 +41,9 @@ class ReportedCVE(BaseModel):
 
 class Feedback(BaseModel):
     vertex_label: str = 'feedback'
-    body: str
+    primary_key: Tuple[str] = ('author',)
     author: str
-    event_id: str
-    event_type: EventType
+    comments: str
     feedback_type: FeedBackType
 
 class Ecosystem(BaseModel):
@@ -45,6 +52,7 @@ class Ecosystem(BaseModel):
 
 class SecurityEvent(BaseModel):
     vertex_label: str = 'security_event'
+    primary_key: Tuple[str] = ('url', )
     event_type: EventType
     body: str
     title: str

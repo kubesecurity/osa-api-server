@@ -5,6 +5,7 @@ from app import server
 from model.pcve import POST_PCVE, GET_PCVE, PUT_FEEDBACK, parser
 from src.ingestion import ingest_data_into_graph
 from src.query_graph import query_graph
+from src.feedback import feedback
 
 app, api = server.app, server.api
 
@@ -22,9 +23,7 @@ class PCVE(Resource):
     def post(self):
         return ingest_data_into_graph(api.payload)
 
-    @api.expect(PUT_FEEDBACK)
+    @api.expect([PUT_FEEDBACK])
     @api.doc("API to update the feedback for probable cve. True/False")
     def put(self):
-        # todo
-        pass
-
+        return feedback(api.payload)

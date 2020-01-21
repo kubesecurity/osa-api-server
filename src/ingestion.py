@@ -6,7 +6,7 @@ def _ingest_pcve(pcve):
     g = Traversel()
     query = str(g.add_unique_node(pcve.dependency)
      .add_unique_node(pcve.version)
-     .add_unique_node(pcve.security_event, 'url')
+     .add_unique_node(pcve.security_event)
      .add_unique_node(pcve.probable_cve)
      .has_version(pcve.dependency, pcve.version)
      .triaged_to(pcve.security_event, pcve.probable_cve)

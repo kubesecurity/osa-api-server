@@ -71,20 +71,19 @@ class Traversel:
         kwargs = node.properties
         return self.addV(node.vertex_label).property(**kwargs)
 
-    def has_node(self, node: BaseModel, *props: str) -> 'Traversel':
+    def has_node(self, node: BaseModel) -> 'Traversel':
         # (fixme) Use has(...)
-        props = None if len(props) is 0 else props
         self.V().hasLabel(node.vertex_label)
         for k, v in node.properties.items():
-            if props is not None and k not in props or v is None:
+            if k not in node.primary_key:
                 continue
             self.append("has('{}', {})".format(str(k), self._value_encoding(v)))
         return self
 
-    def add_unique_node(self, node: BaseModel, *props: str) -> 'Traversel':
+    def add_unique_node(self, node: BaseModel) -> 'Traversel':
         # Reference: https://stackoverflow.com/questions/49758417/cosmosdb-graph-upsert-query-pattern
         g0 = Traversel(None).addV(node.vertex_label)
-        g1 = Traversel(None).has_node(node, *props)
+        g1 = Traversel(None).has_node(node)
         g2 = Traversel(None).property(**node.properties)
         return self.append(str(g1)).append('fold()').append('coalesce(unfold(), {})'.format(str(g0))).append(str(g2))
 
@@ -109,4 +108,10 @@ class Traversel:
 
     def depends_on(self, from_: Version, to: Version) -> 'Traversel':
         return self._add_edge('depends_on', from_, to)
+
+    def weakens(self, from_: Feedback, to: SecurityEvent) -> 'Traversel':
+        return self._add_edge('weakens', from_, to)
+
+    def reinforces(self, from_: Feedback, to: SecurityEvent) -> 'Traversel':
+        return self._add_edge('reinforces', from_, to)
 

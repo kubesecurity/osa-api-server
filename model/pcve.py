@@ -26,7 +26,7 @@ class ISO8601Format(fields.Raw):
 
 parser = reqparse.RequestParser()
 parser.add_argument('ecosystem', type=str, help='Ecosystem')
-parser.add_argument('is_cve', type=bool, help='Is actually a CVE ?')
+parser.add_argument('is_probable_cve', type=bool, help='Manually triaged as probable vulnerability')
 parser.add_argument('feedback', type=bool, help='Feedback updated true/false')
 parser.add_argument('from_date', type=from_date_str, help='Updated range - from')
 parser.add_argument('to_date', type=from_date_str, help='Updated range - to')
@@ -47,8 +47,9 @@ GET_PCVE = server.api.model('GET_PCVE', {
 })
 
 PUT_FEEDBACK = server.api.model('FEEDBACK', {
-    'event_id': fields.String(description='Event ID from Github'),
-    'feedback': fields.String(description='Feedback type', enum=FeedBackType._member_names_),
+    'author': fields.String(description='User id of the feedback provider', default='anonymous'),
     'comments': fields.String(description='Feedback text'),
+    'url': fields.String(description='Github Issue/PR/Commit absolute(fully qualified) URL'),
+    'feedback_type': fields.String(description='Feedback type', enum=FeedBackType._member_names_),
     'identified_cve': fields.String(description='Actual CVE details if exists')
 })
