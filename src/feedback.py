@@ -1,6 +1,6 @@
 from src.graph_model import SecurityEvent, Feedback
 from src.graph_traversel import Traversel
-from src.gremlin import GREMLIN
+from src.gremlin import execute_query
 from src.types import FeedBackType
 
 def _ingest_feedback(payload):
@@ -14,7 +14,7 @@ def _ingest_feedback(payload):
         g.weakens(feedback, security_event)
     else:
         g.reinforces(feedback, security_event)
-    return GREMLIN.execute_query(str(g.next()))
+    return execute_query(g.next())
 
 def feedback(data):
     for payload in data:

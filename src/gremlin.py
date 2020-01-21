@@ -1,8 +1,14 @@
 import os
+
+from gremlin_python.structure.io import graphsonV3d0
+
 from gremlin_connect.gremlin_adapter import GremlinAdapter
+from src.config import GREMLIN_DEFAULT_HOST, GREMLIN_DEFAULT_PORT
 
-_GREMLIN_DEFAULT_HOST = os.environ.get('GREMLIN_DEFAULT_HOST', 'localhost')
-_GREMLIN_DEFAULT_PORT = os.environ.get('GREMLIN_DEFAULT_PORT', 8182)
+_GREMLIN = GremlinAdapter(GREMLIN_DEFAULT_HOST, int(GREMLIN_DEFAULT_PORT))
+_reader = graphsonV3d0.GraphSONReader()
 
-GREMLIN = GremlinAdapter(_GREMLIN_DEFAULT_HOST, int(_GREMLIN_DEFAULT_PORT))
+def execute_query(query):
+    response = _GREMLIN.execute_query(str(query))
+    return _reader.toObject(response)
 

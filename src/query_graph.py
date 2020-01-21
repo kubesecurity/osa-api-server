@@ -5,7 +5,7 @@ from gremlin_python.structure.io import graphsonV3d0
 from src.graph_model import SecurityEvent, EventType, Dependency
 from src.graph_traversel import Traversel
 from src.parse_datetime import from_date_str
-from src.gremlin import GREMLIN
+from src.gremlin import execute_query
 
 # (fixme) traversel should start from ecosystem node
 def _query_template():
@@ -52,16 +52,10 @@ def _get_dependency_query_filters(args: Dict) -> str:
 
     return 'identity()' if len(query) is 0 else '.'.join(query)
 
-def _to_response_model(gremlin_response: Dict) -> Dict:
-    reader = graphsonV3d0.GraphSONReader()
-    rsp = reader.toObject(gremlin_response)
-    return rsp['result']['data']
-
 def query_graph(args: Dict):
     query = _query_template().format(
             security_event_query=_get_security_event_query_filters(args),
             probable_vulnerability_query=_get_probable_vul_query_filters(args),
             dependency_query=_get_dependency_query_filters(args))
-    rsp = _to_response_model(GREMLIN.execute_query(query))
-    return rsp
+    return execute_query(query)['result']['data']
 
