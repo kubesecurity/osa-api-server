@@ -33,6 +33,14 @@ parser.add_argument('to_date', type=from_date_str, help='Updated range - to')
 parser.add_argument('repo', type=str, help='Repository name')
 parser.add_argument('event_type', type=str, choices=(EventType._member_names_), help='Event type')
 
+PUT_FEEDBACK = server.api.model('FEEDBACK', {
+    'author': fields.String(description='User id of the feedback provider', default='anonymous'),
+    'comments': fields.String(description='Feedback text'),
+    'url': fields.String(description='Github Issue/PR/Commit absolute(fully qualified) URL'),
+    'feedback_type': fields.String(description='Feedback type', enum=FeedBackType._member_names_),
+    'identified_cve': fields.String(description='Actual CVE details if exists')
+})
+
 GET_PCVE = server.api.model('GET_PCVE', {
     'ecosystem': fields.String(description='Ecosystem'),
     'repo_name': fields.String(attribute='dependency.dependency_name', description='Repository Name'),
@@ -44,12 +52,6 @@ GET_PCVE = server.api.model('GET_PCVE', {
     'created_at': ISO8601Format(attribute='security_event.created_at'),
     'updated_at': ISO8601Format(attribute='security_event.updated_at'),
     'closed_at': ISO8601Format(attribute='security_event.closed_at'),
+    'feedback': fields.Nested(PUT_FEEDBACK)
 })
 
-PUT_FEEDBACK = server.api.model('FEEDBACK', {
-    'author': fields.String(description='User id of the feedback provider', default='anonymous'),
-    'comments': fields.String(description='Feedback text'),
-    'url': fields.String(description='Github Issue/PR/Commit absolute(fully qualified) URL'),
-    'feedback_type': fields.String(description='Feedback type', enum=FeedBackType._member_names_),
-    'identified_cve': fields.String(description='Actual CVE details if exists')
-})

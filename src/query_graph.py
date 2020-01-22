@@ -9,17 +9,15 @@ from src.gremlin import execute_query
 def _query_template():
     return '''
         g.V().hasLabel('security_event').{security_event_query}.
-          as('security_event').
-          map(
-            outE('triaged_to').inV().hasLabel('probable_vulnerability').{probable_vulnerability_query}
-          ).as('probable_vulnerability').
-          map(
-            outE('affects').inV().hasLabel('dependency_version')
-          ).as('dependency_version').
-          map(
-            inE('has_version').outV().hasLabel('dependency').{dependency_query}
-          ).as('dependency').
-          select('security_event', 'probable_vulnerability', 'dependency_version', 'dependency').
+          as('feedback', 'security_event').
+            outE('triaged_to').inV().hasLabel('probable_vulnerability').{probable_vulnerability_query}.
+          as('probable_vulnerability').
+            outE('affects').inV().hasLabel('dependency_version').
+          as('dependency_version').
+            inE('has_version').outV().hasLabel('dependency').{dependency_query}.
+          as('dependency').
+          select('feedback', 'security_event', 'probable_vulnerability', 'dependency_version', 'dependency').
+          by(inE().outV().valueMap().by(unfold()).fold()).
           by(valueMap().by(unfold())).
           by(valueMap().by(unfold())).
           by(valueMap().by(unfold())).
@@ -57,5 +55,6 @@ def query_graph(args: Dict):
             security_event_query=_get_security_event_query_filters(args),
             probable_vulnerability_query=_get_probable_vuln_query_filters(args),
             dependency_query=_get_dependency_query_filters(args))
-    return execute_query(query)['result']['data']
+    result = execute_query(query)['result']['data']
+    return result
 
