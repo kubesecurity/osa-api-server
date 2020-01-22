@@ -12,7 +12,7 @@ def _query_template():
           as('security_event').
           map(
             outE('triaged_to').inV().hasLabel('probable_vulnerability').{probable_vulnerability_query}
-            ).as('probable_vulnerability').
+          ).as('probable_vulnerability').
           map(
             outE('affects').inV().hasLabel('dependency_version')
           ).as('dependency_version').
@@ -20,10 +20,10 @@ def _query_template():
             inE('has_version').outV().hasLabel('dependency').{dependency_query}
           ).as('dependency').
           select('security_event', 'probable_vulnerability', 'dependency_version', 'dependency').
-          by(elementMap()).
-          by(elementMap()).
-          by(elementMap()).
-          by(elementMap())'''
+          by(valueMap().by(unfold())).
+          by(valueMap().by(unfold())).
+          by(valueMap().by(unfold())).
+          by(valueMap().by(unfold()))'''
 
 def _get_security_event_query_filters(args: Dict) -> str:
     assert 'updated_at' in get_type_hints(SecurityEvent)
