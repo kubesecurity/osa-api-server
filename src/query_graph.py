@@ -35,6 +35,10 @@ def _get_security_event_query_filters(args: Dict) -> str:
     event_type = args['event_type']
     if event_type:
         query.append('''has('event_type', '{event_type}')'''.format(event_type=EventType[event_type].value))
+
+    feedback = args['feedback']
+    if feedback is not None:
+        query.append('where(inE().count().is({}))'.format('gte(1)' if feedback else '0'))
     return 'identity()' if len(query) is 0 else '.'.join(query)
 
 def _get_probable_vuln_query_filters(args: Dict) -> str:
