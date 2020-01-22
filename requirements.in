@@ -1,7 +1,7 @@
 Flask
 flask-swagger-ui
 flask_restplus
-git+https://github.com/fabric8-analytics/osa-data-model@master
+https://github.com/fabric8-analytics/osa-data-model/archive/master.zip
 gremlinpython
 gunicorn
 python-dateutil

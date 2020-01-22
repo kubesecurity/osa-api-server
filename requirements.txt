@@ -30,7 +30,7 @@ locustio==0.13.2          # via locust
 markupsafe==1.1.1         # via jinja2
 more-itertools==8.0.2     # via zipp
 msgpack-python==0.5.6     # via locustio
-git+https://github.com/fabric8-analytics/osa-data-model@master
+https://github.com/fabric8-analytics/osa-data-model/archive/master.zip
 pyrsistent==0.15.6        # via jsonschema
 python-dateutil==2.8.1
 pytz==2019.3              # via flask-restplus
