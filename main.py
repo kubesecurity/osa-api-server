@@ -1,7 +1,7 @@
 from src.app import server
 
-# Need to import all resources
-from src.rest_api import *
+# import src/rest_api to register all endpoints with flask
+import src.rest_api
 
 if __name__ == '__main__':
     server.run()
