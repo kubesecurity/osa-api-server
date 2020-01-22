@@ -1,8 +1,7 @@
-from app import server
-import sys, os
+from src.app import server
 
 # Need to import all resources
-from api.pcve import *
+from src.rest_api import *
 
 if __name__ == '__main__':
     server.run()

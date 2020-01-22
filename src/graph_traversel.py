@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import List
-from src.types import EventType, Severity, FeedBackType
 from src.graph_model import *
 
 #(fixme): Use GLV + Driver instead of REST based approach

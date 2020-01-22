@@ -1,5 +1,29 @@
+from enum import Enum
 from typing import get_type_hints, Tuple
-from src.types import EventType, Severity, FeedBackType
+
+"""Contains type definitions for the data model."""
+class EventType(Enum):
+    """Define the eventtype type, possible values: ISSUE/PULL_REQUEST/COMMIT."""
+
+    ISSUE = "ISSUE"
+    PULL_REQUEST = "PULL_REQUEST"
+    COMMIT = "COMMIT"
+    # (fixme) It has to be removed once ingestion data is corrected
+    IssuesEvent = ISSUE
+    PullRequestEvent = PULL_REQUEST
+
+class Severity(Enum):
+    """Denote the severity of an identified CVE."""
+
+    HIGH = "high"
+    LOW = "low"
+    MODERATE = "moderate"
+
+class FeedBackType(Enum):
+    """Denote the type of feedback(POSITIVE/NEGATIVE)."""
+
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
 
 class BaseModel:
     def __init__(self, **kwargs):

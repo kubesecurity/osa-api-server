@@ -1,7 +1,7 @@
 from flask_restplus import fields, reqparse
-from app import server
+from src.app import server
 
-from src.types import FeedBackType, EventType
+from src.graph_model import FeedBackType, EventType
 from src.parse_datetime import to_date_str, from_date_str
 
 POST_PCVE = server.api.model('PCVE', {

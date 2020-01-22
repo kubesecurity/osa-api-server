@@ -1,7 +1,5 @@
 from typing import get_type_hints, Dict, List
 
-from gremlin_python.structure.io import graphsonV3d0
-
 from src.graph_model import SecurityEvent, EventType, Dependency
 from src.graph_traversel import Traversel
 from src.parse_datetime import from_date_str

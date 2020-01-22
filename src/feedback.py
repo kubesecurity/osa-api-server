@@ -1,7 +1,6 @@
-from src.graph_model import SecurityEvent, Feedback
+from src.graph_model import SecurityEvent, Feedback, FeedBackType
 from src.graph_traversel import Traversel
 from src.gremlin import execute_query
-from src.types import FeedBackType
 
 def _ingest_feedback(payload):
     g = Traversel()

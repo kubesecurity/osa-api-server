@@ -1,8 +1,8 @@
 from flask import Flask
 from flask_restplus import Resource
-from app import server
+from src.app import server
 
-from model.pcve import POST_PCVE, GET_PCVE, PUT_FEEDBACK, parser
+from src.rest_model import POST_PCVE, GET_PCVE, PUT_FEEDBACK, parser
 from src.ingestion import ingest_data_into_graph
 from src.query_graph import query_graph
 from src.feedback import feedback

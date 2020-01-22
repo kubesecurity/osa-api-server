@@ -1,6 +1,5 @@
 import re
-from src.graph_model import Dependency, Version, Ecosystem, Feedback, ReportedCVE, ProbableCVE, SecurityEvent
-from src.types import *
+from src.graph_model import Dependency, Version, Ecosystem, EventType, Feedback, ReportedCVE, ProbableCVE, SecurityEvent
 from src.parse_datetime import from_date_str
 
 class IngestionData:
