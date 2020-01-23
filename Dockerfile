@@ -1,4 +1,4 @@
-FROM registry.centos.org/centos/centos:7
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 LABEL name="osa api server" \
       description="Probable Vulnerability API server" \
@@ -8,17 +8,13 @@ LABEL name="osa api server" \
       target-file="Dockerfile" \
       app-license="GPL-3.0"
 
-RUN yum install -y epel-release &&\
-    yum install -y git python36-pip python36-devel &&\
-    yum clean all
 
-COPY ./requirements.txt /
-
-RUN pip3 install --upgrade pip &&\
-    pip3 install -r requirements.txt && rm requirements.txt
-
+ADD ./requirements.txt /app/
 ADD main.py /app/
 COPY src/ /app/src/
+
+RUN microdnf install python3 && pip3 install --upgrade pip &&\
+    pip3 install -r /app/requirements.txt && rm /app/requirements.txt
 
 ADD scripts/entrypoint.sh /bin/entrypoint.sh
 
