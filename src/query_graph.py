@@ -1,8 +1,8 @@
+"""Implements search from graph API"""
+
 from typing import get_type_hints, Dict, List
 
 from src.graph_model import SecurityEvent, EventType, Dependency
-from src.graph_traversel import Traversel
-from src.parse_datetime import from_date_str
 from src.gremlin import execute_query
 
 # (fixme) traversel should start from ecosystem node
@@ -23,27 +23,30 @@ def _query_template():
           by(valueMap().by(unfold())).
           by(valueMap().by(unfold()))'''
 
+def _identity_or_conditional(query):
+    return 'identity()' if len(query) == 0 else '.'.join(query)
+
 def _get_security_event_query_filters(args: Dict) -> str:
     assert 'updated_at' in get_type_hints(SecurityEvent)
     query = []
     from_date = args['from_date']
     to_date = args['to_date']
     if from_date and to_date:
-        query.append(
-                '''has('updated_at', between({from_date}, {to_date}))'''.format(
-                    from_date=from_date, to_date=to_date))
+        query.append('''has('updated_at', between({from_date}, {to_date}))'''
+                     .format(from_date=from_date, to_date=to_date))
     event_type = args['event_type']
     if event_type:
-        query.append('''has('event_type', '{event_type}')'''.format(event_type=EventType[event_type].value))
+        query.append('''has('event_type', '{event_type}')'''
+                     .format(event_type=EventType[event_type].value))
 
     feedback = args['feedback']
     if feedback is not None:
         query.append('where(inE().count().is({}))'.format('gte(1)' if feedback else '0'))
-    return 'identity()' if len(query) is 0 else '.'.join(query)
+    return _identity_or_conditional(query)
 
-def _get_probable_vuln_query_filters(args: Dict) -> str:
+def _get_probable_vuln_query_filters(args: Dict) -> str: # pylint: disable=unused-argument
     query = []
-    return 'identity()' if len(query) is 0 else '.'.join(query)
+    return _identity_or_conditional(query)
 
 def _get_dependency_query_filters(args: Dict) -> str:
     assert 'dependency_name' in get_type_hints(Dependency)
@@ -51,14 +54,13 @@ def _get_dependency_query_filters(args: Dict) -> str:
     repo = args['repo']
     if repo is not None:
         query.append('''has('dependency_name', '{repo}')'''.format(repo=repo))
-
-    return 'identity()' if len(query) is 0 else '.'.join(query)
+    return _identity_or_conditional(query)
 
 def query_graph(args: Dict):
-    query = _query_template().format(
-            security_event_query=_get_security_event_query_filters(args),
-            probable_vulnerability_query=_get_probable_vuln_query_filters(args),
-            dependency_query=_get_dependency_query_filters(args))
+    """Retrives graph nodes based on the given criteria"""
+    query: List[str] = _query_template().format(
+        security_event_query=_get_security_event_query_filters(args),
+        probable_vulnerability_query=_get_probable_vuln_query_filters(args),
+        dependency_query=_get_dependency_query_filters(args))
     result = execute_query(query)['result']['data']
     return result
-

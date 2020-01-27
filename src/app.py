@@ -1,17 +1,10 @@
+"""This module encapsulates flask app and flask_restplus api object creation"""
 from flask import Flask
-from flask_restplus import Api, Resource, fields
+from flask_restplus import Api
 
-class Server(object):
-    def __init__(self):
-        self.app = Flask(__name__)
-        self.api = Api(self.app,
-            version='1.0',
-            title='Probable CVE',
-            description='Probable CVE Endpoints',
-            doc = "/api/swagger"
-        )
-
-    def run(self):
-        self.app.run(port = 5000)
-
-server = Server()
+app = Flask(__name__) # pylint: disable=invalid-name
+api = Api(app, # pylint: disable=invalid-name
+          version='1.0',
+          title='Probable CVE',
+          description='Probable CVE Endpoints',
+          doc="/api/swagger")

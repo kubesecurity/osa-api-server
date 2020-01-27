@@ -1,29 +1,30 @@
-from flask import Flask
+"""Abstracts REST end-point routers"""
 from flask_restplus import Resource
-from src.app import server
 
-from src.rest_model import POST_PCVE, GET_PCVE, PUT_FEEDBACK, parser
+from src.app import api
+from src.feedback import feedback
 from src.ingestion import ingest_data_into_graph
 from src.query_graph import query_graph
-from src.feedback import feedback
-
-app, api = server.app, server.api
+from src.rest_model import POST_PCVE, GET_PCVE, PUT_FEEDBACK, PARSER
 
 @api.route('/api/v1/pcve')
-class PCVE(Resource):
-
-    @api.expect(parser)
+class RestApi(Resource):
+    """Abstracts REST end-point routers"""
+    @api.expect(PARSER)
     @api.marshal_list_with(GET_PCVE, skip_none=True)
     @api.doc("API to list probable CVEs")
-    def get(self):
-        return query_graph(parser.parse_args())
+    def get(self): # pylint: disable=no-self-use
+        """API to list probable CVEs"""
+        return query_graph(PARSER.parse_args())
 
     @api.expect([POST_PCVE])
     @api.doc("API to ingest data into DB")
-    def post(self):
+    def post(self): # pylint: disable=no-self-use
+        """API to ingest data into DB"""
         return ingest_data_into_graph(api.payload)
 
     @api.expect([PUT_FEEDBACK])
     @api.doc("API to update the feedback for probable cve. True/False")
-    def put(self):
+    def put(self): # pylint: disable=no-self-use
+        """API to update the feedback for probable cve. True/False"""
         return feedback(api.payload)
