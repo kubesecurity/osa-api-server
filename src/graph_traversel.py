@@ -102,13 +102,13 @@ class Traversel:
     def add_unique_node(self, node: BaseModel) -> 'Traversel':
         """Create node and properties only if it doesn't exists"""
         # Ref: https://stackoverflow.com/questions/49758417/cosmosdb-graph-upsert-query-pattern
-        g0 = Traversel(None).addV(node.vertex_label)
-        g1 = Traversel(None).has_node(node)
-        g2 = Traversel(None).property(**node.properties)
-        return (self.append(str(g1))
+        g_create_node = Traversel(None).addV(node.vertex_label)
+        g_check_node_existence = Traversel(None).has_node(node)
+        g_update_properties = Traversel(None).property(**node.properties)
+        return (self.append(str(g_check_node_existence))
                 .append('fold()')
-                .append('coalesce(unfold(), {})'.format(str(g0)))
-                .append(str(g2)))
+                .append('coalesce(unfold(), {})'.format(str(g_create_node)))
+                .append(str(g_update_properties)))
 
     def _add_edge(self, edge_label: str, from_: BaseModel, to: BaseModel) -> 'Traversel':
         # Reg: https://stackoverflow.com/questions/52447308/add-edge-if-not-exist-using-gremlin
