@@ -5,7 +5,7 @@ from src.app import api
 from src.feedback import feedback
 from src.ingestion import ingest_data_into_graph
 from src.query_graph import query_graph
-from src.rest_model import POST_PCVE, GET_PCVE, PUT_FEEDBACK, PARSER
+from src.rest_model import POST_PCVE, GET_PCVE, POST_FEEDBACK, PARSER
 
 @api.route('/api/v1/pcve')
 class RestApi(Resource):
@@ -23,8 +23,11 @@ class RestApi(Resource):
         """API to ingest data into DB"""
         return ingest_data_into_graph(api.payload)
 
-    @api.expect([PUT_FEEDBACK])
-    @api.doc("API to update the feedback for probable cve. True/False")
-    def put(self): # pylint: disable=no-self-use
-        """API to update the feedback for probable cve. True/False"""
+
+@api.route('/api/v1/feedback')
+@api.expect([POST_FEEDBACK])
+@api.doc("API to post feedback for an event")
+class Feedback(Resource):
+    def post(self): # pylint: disable=no-self-use
+        """API to post feedback for an event"""
         return feedback(api.payload)
