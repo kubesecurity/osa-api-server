@@ -1,3 +1,3 @@
 # OSA API Server
 
-![build](https://github.com/fabric8-analytics/osa-api-server/workflows/build-and-test/badge.svg?branch=master)
+![build and test](https://github.com/fabric8-analytics/osa-api-server/workflows/build%20and%20test/badge.svg)
