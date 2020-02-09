@@ -1,5 +1,6 @@
 '''Ingests historical CSV data into DB'''
 
+from typing import Dict
 import argparse
 import asyncio
 import logging
@@ -12,12 +13,23 @@ import daiquiri
 daiquiri.setup(level=logging.INFO)
 log = daiquiri.getLogger(__name__) # pylint: disable=invalid-name
 
-async def _ingest_probable_cve(df, session: ClientSession, url): # pylint: disable=invalid-name
-    obj = df.to_dict(orient='records')
-    async with session.post(url, json=obj) as response:
-        log.info('Got response {} for {}'.format(response.status, url))
+_failing_list: Dict[str, str] = {}
 
-async def _add_feedback(df, session: ClientSession, url): # pylint: disable=invalid-name
+def _report_failures():
+    if len(_failing_list) == 0:
+        log.info("Successfully ingested")
+    for k, v in _failing_list.items(): # pylint: disable=invalid-name
+        log.error("'{}' failed with status '{}'".format(k, v))
+
+async def _ingest_probable_cve(df, session: ClientSession, url, csv): # pylint: disable=invalid-name
+    objs = df.to_dict(orient='records')
+    for obj in objs:
+        async with session.post(url, json=obj) as response:
+            log.info('Got response {} for {}'.format(response.status, url))
+            if response.status != 200:
+                _failing_list.update(dict([(csv, response.status)]))
+
+async def _add_feedback(df, session: ClientSession, url, csv): # pylint: disable=invalid-name
     if len(df) < 1:
         return
     df['author'] = 'anonymous'
@@ -32,9 +44,12 @@ async def _add_feedback(df, session: ClientSession, url): # pylint: disable=inva
         df['comments'] = ''
     df = df[['author', 'feedback_type', 'comments', 'url']]
     # df['comments'] = ''
-    obj = df.to_dict(orient='records')
-    async with session.post(url, json=obj) as response:
-        log.info('Got response {} for {}'.format(response.status, url))
+    objs = df.to_dict(orient='records')
+    for obj in objs:
+        async with session.post(url, json=obj) as response:
+            log.info('Got response {} for {}'.format(response.status, url))
+            if response.status != 200:
+                _failing_list.update(dict([(csv, response.status)]))
 
 def _get_executor(args):
     if args.feedback:
@@ -49,7 +64,8 @@ async def _main(args):
         df = pd.read_csv(csv, index_col=None, header=0) # pylint: disable=invalid-name
         log.info('Ingest {} records to DB'.format(len(df)))
         async with ClientSession() as session:
-            await func(df=df, session=session, url=url)
+            await func(df=df, session=session, url=url, csv=csv)
+    _report_failures()
 
 def _parse_args():
     parser = argparse.ArgumentParser(prog='python',
