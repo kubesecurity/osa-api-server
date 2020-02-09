@@ -7,9 +7,36 @@ def test_empty_traversel():
     g = Traversel('g')
     assert str(g) == 'g'
 
+def test_empty_traversel_with_no_graph():
+    g = Traversel(None)
+    assert str(g) == ''
+
+def test_empty_traversel_with_anonymous():
+    g = Traversel(None).anonymous().addV('hello')
+    assert str(g) == "addV('hello')"
+
+def test_and_step():
+    g = Traversel('g').addV('hello').and_(Traversel.anonymous().addV('world'))
+    assert str(g) == "g.addV('hello').and(addV('world'))"
+
+def test_string_sanitization():
+    g = Traversel('g').addV('hello').property(a="a'b")
+    assert str(g) == "g.addV('hello').property('a', 'a%27b')"
+
+def test_append_with_traversel_step():
+    g0 = Traversel('g').addV('hello').and_(Traversel.anonymous().addV('world'))
+    g1 = Traversel.anonymous().addV('hello').and_(Traversel.anonymous().addV('world'))
+    g0.append(g1)
+    assert str(g0) == "g.addV('hello').and(addV('world')).addV('hello').and(addV('world'))"
+
+def test_append_with_string_step():
+    g0 = Traversel('g').addV('hello').and_(Traversel.anonymous().addV('world'))
+    g0.append("addV('foo')")
+    assert str(g0) == "g.addV('hello').and(addV('world')).addV('foo')"
+
 def test_add_node_dependency_node():
     g = Traversel('g')
-    dependency = Dependency(dependency_name='foo', dependency_path='http://foo.bar/zoo.git')
+    dependency = Dependency(dependency_name='foo', dependency_path='foo.bar/zoo.git')
     g.add_node(dependency).next()
     assert(
         "g.addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
@@ -21,7 +48,7 @@ def test_add_node_dependency_node():
 
 def test_has_version_traversal():
     g = Traversel('g')
-    dependency = Dependency(dependency_name='foo', dependency_path='http://foo.bar/zoo.git')
+    dependency = Dependency(dependency_name='foo', dependency_path='foo.bar/zoo.git')
     g.add_node(dependency).add_node(dependency).has_version(dependency, dependency).next()
     assert(
         "g.addV('{vertex_label}').property('vertex_label', '{vertex_label}')"

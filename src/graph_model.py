@@ -33,7 +33,8 @@ class BaseModel:
         """Create graph model object based on kwargs and ensure its type"""
         type_hints = get_type_hints(self)
         for k, v in kwargs.items(): # pylint: disable=invalid-name
-            assert type_hints[k] == type(v) or v is None
+            assert type_hints[k] == type(v) or v is None, (
+                'hint for "{}" is {}, actual {}'.format(k, type_hints[k], type(v)))
 
         self.vertex_label = self.__class__.vertex_label # pylint: disable=no-member
         self.properties = {'vertex_label': self.vertex_label, **kwargs}
@@ -74,10 +75,11 @@ class ReportedCVE(BaseModel):
 class Feedback(BaseModel):
     """Model description for Feedback"""
     vertex_label: str = 'feedback'
-    primary_key: Tuple[str] = ('author',)
+    primary_key: Tuple[str] = ('url',)
     author: str
     comments: str
     feedback_type: FeedBackType
+    url: str
 
 class Ecosystem(BaseModel):
     """Model description for Ecosystem"""
