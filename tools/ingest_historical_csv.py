@@ -3,14 +3,12 @@
 from typing import Dict
 import argparse
 import asyncio
-import logging
 import textwrap
 
 from aiohttp import ClientSession
 import pandas as pd
 import daiquiri
 
-daiquiri.setup(level=logging.INFO)
 log = daiquiri.getLogger(__name__) # pylint: disable=invalid-name
 
 _failing_list: Dict[str, str] = {}
@@ -25,8 +23,9 @@ async def _ingest_probable_cve(df, session: ClientSession, url, csv): # pylint: 
     objs = df.to_dict(orient='records')
     for obj in objs:
         async with session.post(url, json=obj) as response:
-            log.info('Got response {} for {}'.format(response.status, url))
+            log.debug('Got response {} for {}'.format(response.status, obj))
             if response.status != 200:
+                log.error('Error response {} for {}'.format(response.status, obj))
                 _failing_list.update(dict([(csv, response.status)]))
 
 async def _add_feedback(df, session: ClientSession, url, csv): # pylint: disable=invalid-name
@@ -47,8 +46,9 @@ async def _add_feedback(df, session: ClientSession, url, csv): # pylint: disable
     objs = df.to_dict(orient='records')
     for obj in objs:
         async with session.post(url, json=obj) as response:
-            log.info('Got response {} for {}'.format(response.status, url))
+            log.debug('Got response {} for {}'.format(response.status, obj))
             if response.status != 200:
+                log.error('Error response {} for {}'.format(response.status, obj))
                 _failing_list.update(dict([(csv, response.status)]))
 
 def _get_executor(args):
@@ -57,12 +57,13 @@ def _get_executor(args):
     return _ingest_probable_cve, args.insert
 
 async def _main(args):
+    daiquiri.setup(level=("DEBUG" if args.verbose else "INFO"))
     log.info('invoking ingestion for {} CSV files'.format(len(args.csv)))
     func, url = _get_executor(args)
     for csv in args.csv:
-        log.info('Convert records in {} to JSON'.format(csv))
+        log.debug('Convert records in {} to JSON'.format(csv))
         df = pd.read_csv(csv, index_col=None, header=0) # pylint: disable=invalid-name
-        log.info('Ingest {} records to DB'.format(len(df)))
+        log.debug('Ingest {} records to DB'.format(len(df)))
         async with ClientSession() as session:
             await func(df=df, session=session, url=url, csv=csv)
     _report_failures()
@@ -86,6 +87,9 @@ def _parse_args():
                        nargs='?',
                        const='http://localhost:5000/api/v1/feedback',
                        help='API endpoint to use for adding feedback')
+    parser.add_argument('--verbose', '-v',
+                        action='store_true',
+                        help='increase output verbosity')
     return parser.parse_args()
 
 if __name__ == '__main__':
