@@ -1,13 +1,13 @@
 """Abstracts access to gremlin server through REST calls"""
 
 import json
-import logging
 import requests
 import daiquiri
 from gremlin_python.structure.io import graphsonV3d0
-from src.config import GREMLIN_DEFAULT_HOST, GREMLIN_DEFAULT_PORT, GREMLIN_SCHEME
+from src.config import (GREMLIN_DEFAULT_HOST, GREMLIN_DEFAULT_PORT, GREMLIN_SCHEME,
+                        DAIQUIRI_LOG_LEVEL)
 
-daiquiri.setup(level=logging.DEBUG)
+daiquiri.setup(level=DAIQUIRI_LOG_LEVEL)
 log = daiquiri.getLogger(__name__) # pylint: disable=invalid-name
 
 _READER = graphsonV3d0.GraphSONReader()
