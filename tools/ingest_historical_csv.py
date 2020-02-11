@@ -32,7 +32,6 @@ async def _add_feedback(df, session: ClientSession, url, csv): # pylint: disable
     if len(df) < 1:
         return
     df['author'] = 'anonymous'
-    df['feedback_type'] = 'POSITIVE'
     # typo carried away
     for feedback in ('Feeedback', 'Feedback'):
         if feedback in df:
@@ -41,6 +40,10 @@ async def _add_feedback(df, session: ClientSession, url, csv): # pylint: disable
             break
     else:
         df['comments'] = ''
+    # old feedback has false positives with comments, transform it to
+    # POSITIVE or NEGATIVE
+    tx_comment = lambda x: ('NEGATIVE' if x.lower().startswith('no') else 'POSITIVE')
+    df['feedback_type'] = df['comments'].apply(tx_comment)
     df = df[['author', 'feedback_type', 'comments', 'url']]
     # df['comments'] = ''
     objs = df.to_dict(orient='records')
