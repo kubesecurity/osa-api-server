@@ -11,13 +11,14 @@ from src.rest_model import POST_PCVE, GET_PCVE, POST_FEEDBACK, PARSER
 class RestApi(Resource):
     """Abstracts REST end-point routers"""
     @api.expect(PARSER)
-    @api.marshal_list_with(GET_PCVE, skip_none=True)
+    @api.marshal_list_with(GET_PCVE, skip_none=True,
+                           mask='*,feedback{author, comments, feedback_type}')
     @api.doc("API to list probable CVEs")
     def get(self): # pylint: disable=no-self-use
         """API to list probable CVEs"""
         return query_graph(PARSER.parse_args())
 
-    @api.expect([POST_PCVE])
+    @api.expect(POST_PCVE)
     @api.doc("API to ingest data into DB")
     def post(self): # pylint: disable=no-self-use
         """API to ingest data into DB"""
@@ -25,9 +26,10 @@ class RestApi(Resource):
 
 
 @api.route('/api/v1/feedback')
-@api.expect([POST_FEEDBACK])
-@api.doc("API to post feedback for an event")
 class Feedback(Resource):
+    """Abstracts REST end-point routers"""
+    @api.expect(POST_FEEDBACK)
+    @api.doc("API to post feedback for an event")
     def post(self): # pylint: disable=no-self-use
         """API to post feedback for an event"""
         return feedback(api.payload)
