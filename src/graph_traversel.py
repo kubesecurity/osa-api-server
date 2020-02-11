@@ -2,7 +2,7 @@
 
 from enum import Enum
 from typing import List
-from urllib.parse import quote
+from src.sanitizer import sanitize
 from src.graph_model import (BaseModel, SecurityEvent, Dependency, Version,
                              Feedback, ReportedCVE, ProbableCVE)
 
@@ -73,7 +73,7 @@ class Traversel:
             return "{}".format(str(val))
         if isinstance(val, Enum):
             return Traversel._value_encoding(val.value)
-        return "'{}'".format(quote(str(val)))
+        return "'{}'".format(sanitize(str(val)))
 
     def hasLabel(self, label: str) -> 'Traversel':
         """Add hasLabel step"""

@@ -1,10 +1,10 @@
 """Abstracts JSON response model declarations """
-from urllib.parse import unquote
 from flask_restplus import fields, reqparse, inputs
 from src.app import api
 
 from src.graph_model import FeedBackType, EventType
 from src.parse_datetime import to_date_str, from_date_str
+from src.sanitizer import unsanitize
 
 # pylint: disable=no-member,protected-access
 POST_PCVE = api.model('PCVE', {
@@ -37,12 +37,12 @@ PARSER.add_argument('is_probable_cve',
 PARSER.add_argument('feedback', type=inputs.boolean, help='Feedback updated true/false')
 PARSER.add_argument('from_date', type=from_date_str, help='Updated range - from')
 PARSER.add_argument('to_date', type=from_date_str, help='Updated range - to')
-PARSER.add_argument('repo', type=str, help='Repository name')
+PARSER.add_argument('repo', type=str, action='append', help='Repository name')
 PARSER.add_argument('event_type', type=str, choices=(EventType._member_names_), help='Event type')
 
 POST_FEEDBACK = api.model('FEEDBACK', {
     'author': fields.String(description='User id of the feedback provider', default='anonymous'),
-    'comments': fields.String(attribute=lambda x: unquote(x['comments']),
+    'comments': fields.String(attribute=lambda x: unsanitize(x['comments']),
                               description='Feedback text'),
     'url': fields.String(description='Github Issue/PR/Commit absolute(fully qualified) URL'),
     'feedback_type': fields.String(description='Feedback type',
@@ -57,7 +57,7 @@ GET_PCVE = api.model('GET_PCVE', {
     'event_type': fields.String(attribute='security_event.event_type',
                                 description='Event Type', enum=EventType._member_names_),
     'status': fields.String(attribute='security_event.status', description='Status'),
-    'url': fields.String(attribute=lambda x: unquote(x['security_event']['url']),
+    'url': fields.String(attribute=lambda x: unsanitize(x['security_event']['url']),
                          description='url'),
     'event_id': fields.String(attribute='security_event.event_id',
                               description='Event Id from Github'),
