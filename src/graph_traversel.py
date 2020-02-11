@@ -2,6 +2,7 @@
 
 from enum import Enum
 from typing import List
+from urllib.parse import quote
 from src.graph_model import (BaseModel, SecurityEvent, Dependency, Version,
                              Feedback, ReportedCVE, ProbableCVE)
 
@@ -13,10 +14,22 @@ class Traversel:
         """Create new Traversel based on name"""
         self._query: List[str] = [name] if isinstance(name, str) else []
 
-    def append(self, query: str) -> 'Traversel':
+    @classmethod
+    def anonymous(cls) -> 'Traversel':
+        """Creates anonymous()Traversel"""
+        return Traversel(None)
+
+    def append(self, query) -> 'Traversel':
         """Appends new op into list"""
-        self._query.append(query)
+        if isinstance(query, str):
+            self._query.append(query)
+        elif isinstance(query, Traversel):
+            self._query += query._query # pylint: disable=protected-access
         return self
+
+    def and_(self, step: 'Traversel') -> 'Traversel':
+        """Appends and step into list"""
+        return self.append('and({})'.format(str(step)))
 
     def as_(self, label: str) -> 'Traversel':
         """Append as step"""
@@ -60,7 +73,7 @@ class Traversel:
             return "{}".format(str(val))
         if isinstance(val, Enum):
             return Traversel._value_encoding(val.value)
-        return "'{}'".format(str(val))
+        return "'{}'".format(quote(str(val)))
 
     def hasLabel(self, label: str) -> 'Traversel':
         """Add hasLabel step"""
@@ -102,22 +115,19 @@ class Traversel:
     def add_unique_node(self, node: BaseModel) -> 'Traversel':
         """Create node and properties only if it doesn't exists"""
         # Ref: https://stackoverflow.com/questions/49758417/cosmosdb-graph-upsert-query-pattern
-        g_create_node = Traversel(None).addV(node.vertex_label)
-        g_check_node_existence = Traversel(None).has_node(node)
-        g_update_properties = Traversel(None).property(**node.properties)
-        return (self.append(str(g_check_node_existence))
+        return (self.append(self.anonymous().has_node(node))
                 .append('fold()')
-                .append('coalesce(unfold(), {})'.format(str(g_create_node)))
-                .append(str(g_update_properties)))
+                .append('coalesce(unfold(), {})'.format(
+                    self.anonymous().addV(node.vertex_label)))
+                .append(self.anonymous().property(**node.properties)))
 
     def _add_edge(self, edge_label: str, from_: BaseModel, to: BaseModel) -> 'Traversel':
         # Reg: https://stackoverflow.com/questions/52447308/add-edge-if-not-exist-using-gremlin
-        g = Traversel(None)
-        g.has_node(from_).as_(edge_label).has_node(to).append(
-            "coalesce(__.inE('{label}').where(outV().as('{label}')), "
-            "addE('{label}').from('{label}'))"
-            .format(label=edge_label))
-        return self.append(str(g))
+        return (self.append(self.anonymous().has_node(from_))
+                .as_(edge_label).has_node(to).append(
+                    "coalesce(__.inE('{label}').where(outV().as('{label}')), "
+                    "addE('{label}').from('{label}'))"
+                    .format(label=edge_label)))
 
     def has_version(self, from_: Dependency, to: Version) -> 'Traversel':
         """Create has_version edge from |from_| to |to|"""
