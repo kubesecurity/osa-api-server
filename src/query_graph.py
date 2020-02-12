@@ -4,6 +4,7 @@ from typing import get_type_hints, Dict, List
 
 from src.graph_model import SecurityEvent, EventType, Dependency
 from src.gremlin import execute_query
+from src.sanitizer import sanitize
 
 # (fixme) traversel should start from ecosystem node
 def _query_template():
@@ -39,9 +40,15 @@ def _get_security_event_query_filters(args: Dict) -> str:
         query.append('''has('event_type', '{event_type}')'''
                      .format(event_type=EventType[event_type].value))
 
+    is_probable_cve = args['is_probable_cve']
     feedback = args['feedback']
-    if feedback is not None:
+    if is_probable_cve is not None:
+        query.append('''where(inE().hasLabel('{}'))'''
+                     .format('reinforces' if is_probable_cve else 'weakens'))
+    elif feedback is not None:
+        # feedback doesn't make any sense when is_probable_cve is set
         query.append('where(inE().count().is({}))'.format('gte(1)' if feedback else '0'))
+
     return _identity_or_conditional(query)
 
 def _get_probable_vuln_query_filters(args: Dict) -> str: # pylint: disable=unused-argument
@@ -52,8 +59,9 @@ def _get_dependency_query_filters(args: Dict) -> str:
     assert 'dependency_name' in get_type_hints(Dependency)
     query = []
     repo = args['repo']
-    if repo is not None:
-        query.append('''has('dependency_name', '{repo}')'''.format(repo=repo))
+    if isinstance(repo, list) and len(repo) > 0:
+        repo = sanitize(repo)
+        query.append('''has('dependency_name', within({repo}))'''.format(repo=repo))
     return _identity_or_conditional(query)
 
 def query_graph(args: Dict):
