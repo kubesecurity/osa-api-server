@@ -63,12 +63,15 @@ async def _main(args):
     daiquiri.setup(level=("DEBUG" if args.verbose else "INFO"))
     log.info('invoking ingestion for {} CSV files'.format(len(args.csv)))
     func, url = _get_executor(args)
-    for csv in args.csv:
-        log.debug('Convert records in {} to JSON'.format(csv))
-        df = pd.read_csv(csv, index_col=None, header=0) # pylint: disable=invalid-name
-        log.debug('Ingest {} records to DB'.format(len(df)))
-        async with ClientSession() as session:
-            await func(df=df, session=session, url=url, csv=csv)
+    async with ClientSession() as session:
+        tasks = []
+        for csv in args.csv:
+            log.debug('Convert records in {} to JSON'.format(csv))
+            df = pd.read_csv(csv, index_col=None, header=0) # pylint: disable=invalid-name
+            log.debug('Ingest {} records to DB'.format(len(df)))
+            task = asyncio.ensure_future(func(df=df, session=session, url=url, csv=csv))
+            tasks.append(task)
+        _ = await asyncio.gather(*tasks)
     _report_failures()
 
 def _parse_args():
