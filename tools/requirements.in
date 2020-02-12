@@ -1,4 +1,3 @@
 aiohttp
 daiquiri
 pandas
-pytest-asyncio
