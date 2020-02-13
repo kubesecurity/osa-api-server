@@ -19,16 +19,16 @@ def _report_failures():
     for k, v in _failing_list.items(): # pylint: disable=invalid-name
         log.error("'{}' failed with status '{}'".format(k, v))
 
-async def _ingest_probable_cve(df, session: ClientSession, url, csv): # pylint: disable=invalid-name
+async def _insert_df(df, session: ClientSession, url, csv, sem): # pylint: disable=invalid-name
     objs = df.to_dict(orient='records')
     for obj in objs:
-        async with session.post(url, json=obj) as response:
+        async with sem, session.post(url, json=obj) as response:
             log.debug('Got response {} for {}'.format(response.status, obj))
             if response.status != 200:
                 log.error('Error response {} for {}'.format(response.status, obj))
                 _failing_list.update(dict([(csv, response.status)]))
 
-async def _add_feedback(df, session: ClientSession, url, csv): # pylint: disable=invalid-name
+async def _add_feedback(df, session: ClientSession, url, csv, sem): # pylint: disable=invalid-name
     if len(df) < 1:
         return
     df['author'] = 'anonymous'
@@ -45,31 +45,26 @@ async def _add_feedback(df, session: ClientSession, url, csv): # pylint: disable
     tx_comment = lambda x: ('NEGATIVE' if x.lower().startswith('no') else 'POSITIVE')
     df['feedback_type'] = df['comments'].apply(tx_comment)
     df = df[['author', 'feedback_type', 'comments', 'url']]
-    # df['comments'] = ''
-    objs = df.to_dict(orient='records')
-    for obj in objs:
-        async with session.post(url, json=obj) as response:
-            log.debug('Got response {} for {}'.format(response.status, obj))
-            if response.status != 200:
-                log.error('Error response {} for {}'.format(response.status, obj))
-                _failing_list.update(dict([(csv, response.status)]))
+    await _insert_df(df, session, url, csv, sem)
 
 def _get_executor(args):
     if args.feedback:
         return _add_feedback, args.feedback
-    return _ingest_probable_cve, args.insert
+    return _insert_df, args.insert
 
 async def _main(args):
     daiquiri.setup(level=("DEBUG" if args.verbose else "INFO"))
     log.info('invoking ingestion for {} CSV files'.format(len(args.csv)))
     func, url = _get_executor(args)
+    sem = asyncio.BoundedSemaphore(args.concurrency)
     async with ClientSession() as session:
         tasks = []
         for csv in args.csv:
             log.debug('Convert records in {} to JSON'.format(csv))
             df = pd.read_csv(csv, index_col=None, header=0) # pylint: disable=invalid-name
             log.debug('Ingest {} records to DB'.format(len(df)))
-            task = asyncio.ensure_future(func(df=df, session=session, url=url, csv=csv))
+            task = asyncio.ensure_future(func(df=df, session=session, url=url,
+                                              csv=csv, sem=sem))
             tasks.append(task)
         _ = await asyncio.gather(*tasks)
     _report_failures()
@@ -93,6 +88,10 @@ def _parse_args():
                        nargs='?',
                        const='http://localhost:5000/api/v1/feedback',
                        help='API endpoint to use for adding feedback')
+    parser.add_argument('--concurrency',
+                        type=int,
+                        default=10,
+                        help='No of concurrent requests allowed')
     parser.add_argument('--verbose', '-v',
                         action='store_true',
                         help='increase output verbosity')
