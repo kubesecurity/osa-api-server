@@ -11,8 +11,7 @@ from src.rest_model import POST_PCVE, GET_PCVE, POST_FEEDBACK, PARSER
 class RestApi(Resource):
     """Abstracts REST end-point routers"""
     @api.expect(PARSER)
-    @api.marshal_list_with(GET_PCVE, skip_none=True,
-                           mask='*,feedback{author, comments, feedback_type}')
+    @api.marshal_list_with(GET_PCVE, skip_none=True)
     @api.doc("API to list probable CVEs")
     def get(self): # pylint: disable=no-self-use
         """API to list probable CVEs"""

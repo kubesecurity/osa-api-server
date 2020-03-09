@@ -50,21 +50,33 @@ POST_FEEDBACK = api.model('FEEDBACK', {
     'identified_cve': fields.String(description='Actual CVE details if exists')
 })
 
+GET_FEEDBACK = api.model('FEEDBACK', {
+    'author': fields.String(description='User id of the feedback provider', default='anonymous',
+                            attribute=lambda x: x['author'][0]),
+    'comments': fields.String(attribute=lambda x: unsanitize(x['comments'][0]),
+                              description='Feedback text'),
+    'feedback_type': fields.String(description='Feedback type',
+                                   attribute=lambda x: x['feedback_type'][0],
+                                   enum=FeedBackType._member_names_),
+})
+
 GET_PCVE = api.model('GET_PCVE', {
     'ecosystem': fields.String(description='Ecosystem'),
-    'repo_name': fields.String(attribute='dependency.dependency_name',
+    'repo_name': fields.String(attribute=lambda x: x['dependency']['dependency_name'][0],
                                description='Repository Name'),
-    'event_type': fields.String(attribute='security_event.event_type',
+    'event_type': fields.String(attribute=lambda x: x['security_event']['event_type'][0],
                                 description='Event Type', enum=EventType._member_names_),
-    'status': fields.String(attribute='security_event.status', description='Status'),
-    'url': fields.String(attribute=lambda x: unsanitize(x['security_event']['url']),
+    'status': fields.String(attribute=lambda x: x['security_event']['status'][0],
+                            description='Status'),
+    'url': fields.String(attribute=lambda x: unsanitize(x['security_event']['url'][0]),
                          description='url'),
-    'event_id': fields.String(attribute='security_event.event_id',
+    'event_id': fields.String(attribute=lambda x: x['security_event']['event_id'][0],
                               description='Event Id from Github'),
-    'probable_vuln_id': fields.String(attribute='probable_vulnerability.probable_vuln_id',
+    'probable_vuln_id': fields.String(attribute=lambda x: \
+                                        x['probable_vulnerability']['probable_vuln_id'][0],
                                       description='Probable vulnerability ID'),
-    'created_at': ISO8601Format(attribute='security_event.created_at'),
-    'updated_at': ISO8601Format(attribute='security_event.updated_at'),
-    'closed_at': ISO8601Format(attribute='security_event.closed_at'),
-    'feedback': fields.Nested(POST_FEEDBACK)
+    'created_at': ISO8601Format(attribute=lambda x: x['security_event']['created_at'][0]),
+    'updated_at': ISO8601Format(attribute=lambda x: x['security_event']['updated_at'][0]),
+    'closed_at': ISO8601Format(attribute=lambda x: x['security_event']['closed_at'][0]),
+    'feedback': fields.Nested(GET_FEEDBACK)
 })
