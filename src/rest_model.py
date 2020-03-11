@@ -40,7 +40,7 @@ PARSER.add_argument('to_date', type=from_date_str, help='Updated range - to')
 PARSER.add_argument('repo', type=str, action='append', help='Repository name')
 PARSER.add_argument('event_type', type=str, choices=(EventType._member_names_), help='Event type')
 
-POST_FEEDBACK = api.model('FEEDBACK', {
+POST_FEEDBACK = api.model('POST_FEEDBACK', {
     'author': fields.String(description='User id of the feedback provider', default='anonymous'),
     'comments': fields.String(attribute=lambda x: unsanitize(x['comments']),
                               description='Feedback text'),
@@ -50,7 +50,7 @@ POST_FEEDBACK = api.model('FEEDBACK', {
     'identified_cve': fields.String(description='Actual CVE details if exists')
 })
 
-GET_FEEDBACK = api.model('FEEDBACK', {
+GET_FEEDBACK = api.model('GET_FEEDBACK', {
     'author': fields.String(description='User id of the feedback provider', default='anonymous',
                             attribute=lambda x: x['author'][0]),
     'comments': fields.String(attribute=lambda x: unsanitize(x['comments'][0]),
