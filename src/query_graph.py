@@ -18,11 +18,11 @@ def _query_template():
             inE('has_version').outV().hasLabel('dependency').{dependency_query}.
           as('dependency').
           select('feedback', 'security_event', 'probable_vulnerability', 'dependency_version', 'dependency').
-          by(inE().outV().valueMap().by(unfold()).fold()).
-          by(valueMap().by(unfold())).
-          by(valueMap().by(unfold())).
-          by(valueMap().by(unfold())).
-          by(valueMap().by(unfold()))'''
+          by(inE().outV().valueMap().fold()).
+          by(valueMap()).
+          by(valueMap()).
+          by(valueMap()).
+          by(valueMap())'''
 
 def _identity_or_conditional(query):
     return 'identity()' if len(query) == 0 else '.'.join(query)

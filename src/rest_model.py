@@ -4,7 +4,7 @@ from src.app import api
 
 from src.graph_model import FeedBackType, EventType
 from src.parse_datetime import to_date_str, from_date_str
-from src.sanitizer import unsanitize
+from src.unroll_property import value, unsanitized_value
 
 # pylint: disable=no-member,protected-access
 POST_PCVE = api.model('PCVE', {
@@ -25,7 +25,7 @@ POST_PCVE = api.model('PCVE', {
 
 class ISO8601Format(fields.Raw):
     """Abstracts iso8601 string formatting"""
-    def format(self, value):
+    def format(self, value): # pylint: disable=redefined-outer-name
         """Converts given epoch to iso8601 string"""
         return to_date_str(value)
 
@@ -40,31 +40,41 @@ PARSER.add_argument('to_date', type=from_date_str, help='Updated range - to')
 PARSER.add_argument('repo', type=str, action='append', help='Repository name')
 PARSER.add_argument('event_type', type=str, choices=(EventType._member_names_), help='Event type')
 
-POST_FEEDBACK = api.model('FEEDBACK', {
+POST_FEEDBACK = api.model('POST_FEEDBACK', {
     'author': fields.String(description='User id of the feedback provider', default='anonymous'),
-    'comments': fields.String(attribute=lambda x: unsanitize(x['comments']),
-                              description='Feedback text'),
+    'comments': fields.String(description='Feedback text'),
     'url': fields.String(description='Github Issue/PR/Commit absolute(fully qualified) URL'),
     'feedback_type': fields.String(description='Feedback type',
                                    enum=FeedBackType._member_names_),
     'identified_cve': fields.String(description='Actual CVE details if exists')
 })
 
+GET_FEEDBACK = api.model('GET_FEEDBACK', {
+    'author': fields.String(description='User id of the feedback provider', default='anonymous',
+                            attribute=value('author')),
+    'comments': fields.String(attribute=unsanitized_value('comments'),
+                              description='Feedback text'),
+    'feedback_type': fields.String(description='Feedback type',
+                                   attribute=value('feedback_type'),
+                                   enum=FeedBackType._member_names_),
+})
+
 GET_PCVE = api.model('GET_PCVE', {
     'ecosystem': fields.String(description='Ecosystem'),
-    'repo_name': fields.String(attribute='dependency.dependency_name',
+    'repo_name': fields.String(attribute=value('dependency.dependency_name'),
                                description='Repository Name'),
-    'event_type': fields.String(attribute='security_event.event_type',
+    'event_type': fields.String(attribute=value('security_event.event_type'),
                                 description='Event Type', enum=EventType._member_names_),
-    'status': fields.String(attribute='security_event.status', description='Status'),
-    'url': fields.String(attribute=lambda x: unsanitize(x['security_event']['url']),
+    'status': fields.String(attribute=value('security_event.status'),
+                            description='Status'),
+    'url': fields.String(attribute=unsanitized_value('security_event.url'),
                          description='url'),
-    'event_id': fields.String(attribute='security_event.event_id',
+    'event_id': fields.String(attribute=value('security_event.event_id'),
                               description='Event Id from Github'),
-    'probable_vuln_id': fields.String(attribute='probable_vulnerability.probable_vuln_id',
+    'probable_vuln_id': fields.String(attribute=value('probable_vulnerability.probable_vuln_id'),
                                       description='Probable vulnerability ID'),
-    'created_at': ISO8601Format(attribute='security_event.created_at'),
-    'updated_at': ISO8601Format(attribute='security_event.updated_at'),
-    'closed_at': ISO8601Format(attribute='security_event.closed_at'),
-    'feedback': fields.Nested(POST_FEEDBACK)
+    'created_at': ISO8601Format(attribute=value('security_event.created_at')),
+    'updated_at': ISO8601Format(attribute=value('security_event.updated_at')),
+    'closed_at': ISO8601Format(attribute=value('security_event.closed_at')),
+    'feedback': fields.Nested(GET_FEEDBACK)
 })
