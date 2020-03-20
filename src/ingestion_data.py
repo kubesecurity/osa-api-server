@@ -1,28 +1,31 @@
-"""Ingestion related data handling"""
+"""Ingestion related data handling."""
 
 import re
 from src.graph_model import (Dependency, Version, Ecosystem, EventType,
                              ProbableCVE, SecurityEvent)
 from src.parse_datetime import from_date_str
 
+
 class IngestionData:
-    """Encapsulates ingestion data"""
+    """Encapsulates ingestion data."""
+
     _URL_PATTERN = re.compile(r'[:/]+')
 
     def __init__(self, json_data):
+        """Init method."""
         self._payload = json_data
         self._sec = None
 
     @property
     def dependency(self) -> Dependency:
-        """Creates Dependency object from json_data"""
+        """Create Dependency object from json_data."""
         return Dependency(dependency_name=self._payload['repo_name'],
                           dependency_path=self._get_dependency_path())
 
     def _timestamp(self, field_name: str):
         try:
             return from_date_str(self._payload[field_name])
-        except: # pylint: disable=bare-except
+        except:
             return None
 
     def _updated_at(self) -> int:
@@ -45,24 +48,24 @@ class IngestionData:
 
     @property
     def version(self) -> Version:
-        """Creates Version object from json_data"""
+        """Create Version object from json_data."""
         return Version(version=self._version_str(),
                        dependency_name=self._payload['repo_name'])
 
     @property
     def probable_cve(self) -> ProbableCVE:
-        """Creates ProbableCVE object from json_data"""
+        """Create ProbableCVE object from json_data."""
         pcve_id = 'PCVE-{repo_name}-{number}'.format(**self._payload)
         return ProbableCVE(probable_vuln_id=pcve_id)
 
     @property
     def ecosystem(self) -> Ecosystem:
-        """Creates Ecosystem object from json_data"""
+        """Create Ecosystem object from json_data."""
         return Ecosystem(ecosystem_name=self._payload['ecosystem'])
 
     @property
     def security_event(self) -> SecurityEvent:
-        """Creates SecurityEvent object from json_data"""
+        """Create SecurityEvent object from json_data."""
         self._sec = self._sec or SecurityEvent(event_type=EventType[self._payload['event_type']],
                                                body=self._payload['url'],
                                                title=self._payload['url'],

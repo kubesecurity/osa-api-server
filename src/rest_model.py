@@ -1,4 +1,4 @@
-"""Abstracts JSON response model declarations """
+"""Abstracts JSON response model declarations."""
 from flask_restplus import fields, reqparse, inputs
 from src.app import api
 
@@ -6,7 +6,6 @@ from src.graph_model import FeedBackType, EventType
 from src.parse_datetime import to_date_str, from_date_str
 from src.unroll_property import value, unsanitized_value
 
-# pylint: disable=no-member,protected-access
 POST_PCVE = api.model('PCVE', {
     'ecosystem': fields.String(description='Ecosystem'),
     'repo_name': fields.String(description='Repository Name'),
@@ -23,11 +22,14 @@ POST_PCVE = api.model('PCVE', {
     'creator_url': fields.Url(description='Creator Url'),
 })
 
+
 class ISO8601Format(fields.Raw):
-    """Abstracts iso8601 string formatting"""
-    def format(self, value): # pylint: disable=redefined-outer-name
-        """Converts given epoch to iso8601 string"""
+    """Abstracts iso8601 string formatting."""
+
+    def format(self, value):
+        """Convert given epoch to iso8601 string."""
         return to_date_str(value)
+
 
 PARSER = reqparse.RequestParser()
 PARSER.add_argument('ecosystem', type=str, help='Ecosystem')

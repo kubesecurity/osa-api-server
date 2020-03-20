@@ -1,10 +1,11 @@
-"""Implements search from graph API"""
+"""Implements search from graph API."""
 
 from typing import get_type_hints, Dict, List
 
 from src.graph_model import SecurityEvent, EventType, Dependency
 from src.gremlin import execute_query
 from src.sanitizer import sanitize
+
 
 # (fixme) traversel should start from ecosystem node
 def _query_template():
@@ -24,8 +25,10 @@ def _query_template():
           by(valueMap()).
           by(valueMap())'''
 
+
 def _identity_or_conditional(query):
     return 'identity()' if len(query) == 0 else '.'.join(query)
+
 
 def _get_security_event_query_filters(args: Dict) -> str:
     assert 'updated_at' in get_type_hints(SecurityEvent)
@@ -51,9 +54,11 @@ def _get_security_event_query_filters(args: Dict) -> str:
 
     return _identity_or_conditional(query)
 
-def _get_probable_vuln_query_filters(args: Dict) -> str: # pylint: disable=unused-argument
+
+def _get_probable_vuln_query_filters(args: Dict) -> str:  # pylint: disable=unused-argument
     query = []
     return _identity_or_conditional(query)
+
 
 def _get_dependency_query_filters(args: Dict) -> str:
     assert 'dependency_name' in get_type_hints(Dependency)
@@ -64,8 +69,9 @@ def _get_dependency_query_filters(args: Dict) -> str:
         query.append('''has('dependency_name', within({repo}))'''.format(repo=repo))
     return _identity_or_conditional(query)
 
+
 def query_graph(args: Dict):
-    """Retrives graph nodes based on the given criteria"""
+    """Retrives graph nodes based on the given criteria."""
     query: List[str] = _query_template().format(
         security_event_query=_get_security_event_query_filters(args),
         probable_vulnerability_query=_get_probable_vuln_query_filters(args),

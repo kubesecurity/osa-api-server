@@ -1,11 +1,12 @@
-"""Abstracts Feedback node creation functionality """
+"""Abstracts Feedback node creation functionality."""
 
 from src.graph_model import SecurityEvent, Feedback, FeedBackType
 from src.graph_traversel import Traversel
 from src.gremlin import execute_query
 
+
 def feedback(payload):
-    """Creates Feedback node into the graphdb based on data"""
+    """Create Feedback node into the graphdb based on data."""
     # pylint: disable=invalid-name
     g = Traversel()
     # create SecurityEvent obj with only url as property, which is enough

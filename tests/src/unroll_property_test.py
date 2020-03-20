@@ -1,4 +1,4 @@
-"""Tests list property unroller"""
+"""Tests list property unroller."""
 
 import pytest
 
@@ -21,8 +21,10 @@ VALUE_TESTDATA = [
 ]
 @pytest.mark.parametrize("obj,key,expected", VALUE_TESTDATA)
 def test_value(obj, key, expected):
+    """Test sanitized value."""
     get = value(key)
     assert expected == get(obj)
+
 
 UNSANITIZED_VALUE_TESTDATA = [
         ({}, 'foo', None),
@@ -38,5 +40,6 @@ UNSANITIZED_VALUE_TESTDATA = [
 ]
 @pytest.mark.parametrize("obj,key,expected", UNSANITIZED_VALUE_TESTDATA)
 def test_unsanitized_value(obj, key, expected):
+    """Test unsanitized value."""
     get = unsanitized_value(key)
     assert expected == get(obj)
