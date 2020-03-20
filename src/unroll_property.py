@@ -1,9 +1,10 @@
-"""Helper functions to unroll gremlin list property"""
+"""Helper functions to unroll gremlin list property."""
 
 from src.sanitizer import unsanitize
 
+
 def value(keys):
-    """Nested dictionary keys who's value to be unrolled"""
+    """Nested dictionary keys who's value to be unrolled."""
     def _get(obj) -> str:
         try:
             for key in keys.split('.'):
@@ -16,8 +17,9 @@ def value(keys):
         return None
     return _get
 
+
 def unsanitized_value(keys):
-    """Nested dictionary keys who's value to be unrolled and unsanitized"""
+    """Nested dictionary keys who's value to be unrolled and unsanitized."""
     def _get(obj) -> str:
         try:
             return unsanitize(value(keys)(obj))

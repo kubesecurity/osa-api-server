@@ -1,4 +1,4 @@
-'''Ingests historical CSV data into DB'''
+"""Ingests historical CSV data into DB."""
 
 from typing import Dict
 import argparse
@@ -9,17 +9,19 @@ from aiohttp import ClientSession
 import pandas as pd
 import daiquiri
 
-log = daiquiri.getLogger(__name__) # pylint: disable=invalid-name
+log = daiquiri.getLogger(__name__)  # pylint: disable=invalid-name
 
 _failing_list: Dict[str, str] = {}
+
 
 def _report_failures():
     if len(_failing_list) == 0:
         log.info("Successfully ingested")
-    for k, v in _failing_list.items(): # pylint: disable=invalid-name
+    for k, v in _failing_list.items():  # pylint: disable=invalid-name
         log.error("'{}' failed with status '{}'".format(k, v))
 
-async def _insert_df(df, session: ClientSession, url, csv, sem): # pylint: disable=invalid-name
+
+async def _insert_df(df, session: ClientSession, url, csv, sem):  # pylint: disable=invalid-name
     objs = df.to_dict(orient='records')
     for obj in objs:
         async with sem, session.post(url, json=obj) as response:
@@ -28,7 +30,8 @@ async def _insert_df(df, session: ClientSession, url, csv, sem): # pylint: disab
                 log.error('Error response {} for {}'.format(response.status, obj))
                 _failing_list.update(dict([(csv, response.status)]))
 
-async def _add_feedback(df, session: ClientSession, url, csv, sem): # pylint: disable=invalid-name
+
+async def _add_feedback(df, session: ClientSession, url, csv, sem):  # pylint: disable=invalid-name
     if len(df) < 1:
         return
     df['author'] = 'anonymous'
@@ -47,10 +50,12 @@ async def _add_feedback(df, session: ClientSession, url, csv, sem): # pylint: di
     df = df[['author', 'feedback_type', 'comments', 'url']]
     await _insert_df(df, session, url, csv, sem)
 
+
 def _get_executor(args):
     if args.feedback:
         return _add_feedback, args.feedback
     return _insert_df, args.insert
+
 
 async def _main(args):
     daiquiri.setup(level=("DEBUG" if args.verbose else "INFO"))
@@ -61,13 +66,14 @@ async def _main(args):
         tasks = []
         for csv in args.csv:
             log.debug('Convert records in {} to JSON'.format(csv))
-            df = pd.read_csv(csv, index_col=None, header=0) # pylint: disable=invalid-name
+            df = pd.read_csv(csv, index_col=None, header=0)  # pylint: disable=invalid-name
             log.debug('Ingest {} records to DB'.format(len(df)))
             task = asyncio.ensure_future(func(df=df, session=session, url=url,
                                               csv=csv, sem=sem))
             tasks.append(task)
         _ = await asyncio.gather(*tasks)
     _report_failures()
+
 
 def _parse_args():
     parser = argparse.ArgumentParser(prog='python',
@@ -96,6 +102,7 @@ def _parse_args():
                         action='store_true',
                         help='increase output verbosity')
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     # pylint: disable=invalid-name

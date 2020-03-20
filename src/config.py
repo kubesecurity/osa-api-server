@@ -1,4 +1,4 @@
-"""Config as env variable"""
+"""Config as env variable."""
 import os
 
 GREMLIN_DEFAULT_HOST = os.environ.get('GREMLIN_DEFAULT_HOST', 'localhost')
