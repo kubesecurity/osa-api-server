@@ -53,7 +53,7 @@ check_results() {
 run_all_checkers() {
     printf "%sRunning all tests and checkers%s\n" "${YELLOW}" "${NORMAL}"
 
-    eco "   Creating log directory and all err, log file will dump into this folder"
+    echo "  Creating log directory  inside 'qa' folder where all err, log file will be dump"
     mkdir log
 
     echo "  Check all BASH scripts"
@@ -87,7 +87,7 @@ run_all_checkers() {
 
 # print out overall results
 overall_results() {
-    printf "%sOveral result%s\n" "${YELLOW}" "${NORMAL}"
+    printf "%sOverall result%s\n" "${YELLOW}" "${NORMAL}"
 
     if [ $errors -eq 0 ]
     then
