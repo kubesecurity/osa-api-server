@@ -58,3 +58,7 @@ python tools/ingest_historical_csv.py <path_to_csv_file> --insert
 ```
 python tools/ingest_historical_csv.py <path_to_csv_file> --feedback
 ```
+
+## QA Script Usage
+
+A [documentation](qa/README.md) has been created with details on how we can use QA scripts. 
