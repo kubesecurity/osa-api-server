@@ -21,8 +21,9 @@ prep() {
 
     yum -y update
     yum install -y epel-release
-    yum install -y docker git which gcc python36-devel python36-pip python36-requests python36-virtualenv
+    yum install -y docker git which gcc python36-devel python36-pip python36-requests python36-virtualenv python-rhsm-certificates
     pip3 install virtualenv
+    mkdir -p /etc/rhsm; mkdir -p /etc/rhsm/ca; openssl s_client -showcerts -servername registry.access.redhat.com -connect registry.access.redhat.com:443 </dev/null 2>/dev/null | openssl x509 -text > /etc/rhsm/ca/redhat-uep.pem
     systemctl start docker
 }
 

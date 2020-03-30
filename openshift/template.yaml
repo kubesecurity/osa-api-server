@@ -102,7 +102,7 @@ parameters:
   displayName: Gremlin server host
   required: true
   name: GREMLIN_DEFAULT_HOST
-  value: "osa-gremlin-http"
+  value: "bayesian-gremlin-osahttp"
 
 - description: Gremlin server port
   displayName: Gremlin server port
