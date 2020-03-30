@@ -21,7 +21,7 @@ prep() {
 
     yum -y update
     yum install -y epel-release
-    yum install -y docker git which gcc python36-devel python36-pip python36-requests python36-virtualenv
+    yum install -y docker git which gcc python36-devel python36-pip python36-requests python36-virtualenv python-rhsm-certificates
     pip3 install virtualenv
     systemctl start docker
 }
