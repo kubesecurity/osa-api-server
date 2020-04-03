@@ -48,7 +48,6 @@ check_python_version
 [ "$NOVENV" == "1" ] || prepare_venv || exit 1
 
 $(which pip3) install -r requirements-test.txt
-#$(which pip3) install pytest-cov
 
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=`pwd` python3 "$(which pytest)" --cov=src/ --cov-report term-missing --cov-fail-under=$COVERAGE_THRESHOLD -vv tests/
 
