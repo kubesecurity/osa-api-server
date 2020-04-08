@@ -14,7 +14,7 @@ def feedback(payload):
     security_event = SecurityEvent(url=payload['url'])
     feedback_ = Feedback(author=payload['author'],
                          feedback_type=FeedBackType[payload['feedback_type']],
-                         url=payload['url'],
+                         feedback_url=payload['url'],
                          comments=payload['comments'])
     g.has_node(security_event).and_(Traversel.anonymous().add_unique_node(feedback_))
     if feedback_.feedback_type is FeedBackType.NEGATIVE:

@@ -91,11 +91,11 @@ class Feedback(BaseModel):
     """Model description for Feedback."""
 
     vertex_label: str = 'feedback'
-    primary_key: Tuple[str] = ('url',)
+    primary_key: Tuple[str] = ('feedback_url', 'author',)
     author: str
     comments: str
     feedback_type: FeedBackType
-    url: str
+    feedback_url: str
 
 
 class Ecosystem(BaseModel):

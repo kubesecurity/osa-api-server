@@ -40,6 +40,8 @@ objects:
             value: "sync"
           - name: FLASK_LOGGING_LEVEL
             value: ${FLASK_LOGGING_LEVEL}
+          - name: SKIP_SCHEMA
+            value: ${SKIP_SCHEMA}
 
           image: "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}"
           name: osa-api-server
@@ -176,3 +178,8 @@ parameters:
   name: FLASK_LOGGING_LEVEL
   value: "INFO"
 
+- description: "Flag that heps to create index/unique contraints if its enabled"
+  displayName: Skip Schema
+  required: false
+  name: SKIP_SCHEMA
+  value: "false"
