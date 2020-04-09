@@ -70,10 +70,10 @@ def test_has_version_traversal():
             ".addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
             ".property('dependency_name', '{dependency_name}')"
             ".property('dependency_path', '{dependency_path}')"
-            ".V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
+            ".V().has('vertex_label', '{vertex_label}')"
             ".has('dependency_name', '{dependency_name}')"
             ".has('dependency_path', '{dependency_path}')"
-            ".as('has_version').V().hasLabel('{vertex_label}')"
+            ".as('has_version').V()"
             ".has('vertex_label', '{vertex_label}')"
             ".has('dependency_name', '{dependency_name}')"
             ".has('dependency_path', '{dependency_path}')"
@@ -90,7 +90,7 @@ def test_add_unique_node():
     g = Traversel('g')
     foo = Foo(foo='bar')
     g.add_unique_node(foo)
-    assert ("g.V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
+    assert ("g.V().has('vertex_label', '{vertex_label}')"
             ".has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}'))"
             ".property('vertex_label', '{vertex_label}').property('foo', '{foo}')"
             .format(**foo.__dict__) == str(g))
@@ -121,7 +121,7 @@ def test_add_unique_node_with_key():
     g = Traversel('g')
     foo = Foo(foo='bar', bar='zoo')
     g.add_unique_node(foo)
-    assert ("g.V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
+    assert ("g.V().has('vertex_label', '{vertex_label}')"
             ".has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}'))"
             ".property('vertex_label', '{vertex_label}').property('foo', '{foo}')"
             ".property('bar', '{bar}')".format(**foo.__dict__) == str(g))

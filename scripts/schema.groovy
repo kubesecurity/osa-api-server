@@ -120,11 +120,11 @@
         }
 
         // Uniqueness constrains
-        if(null == mgmt.getGraphIndex('URLIndex')) {
+        if(mgmt.getGraphIndex('URLIndex') == null) {
             mgmt.buildIndex('URLIndex', Vertex.class).addKey(url).unique().buildCompositeIndex();
         }
 
-        if(null == mgmt.getGraphIndex('FeedbackUniqueIndex')) {
+        if(mgmt.getGraphIndex('FeedbackUniqueIndex') == null) {
             mgmt.buildIndex('FeedbackUniqueIndex', Vertex.class).addKey(author).addKey(feedback_url).unique().buildCompositeIndex();
         }
 
@@ -134,7 +134,7 @@
                 'dependency_name',
                 'dependency_path',
                 'probable_vuln_id',
-                'updated_at',
+                'feedback_type'
                 'status',
                 'event_type'
         ]
@@ -142,7 +142,7 @@
         allKeys.each { k ->
             keyRef = mgmt.getPropertyKey(k);
             index_key = 'index_prop_key_'+k;
-            if(null == mgmt.getGraphIndex(index_key)) {
+            if(mgmt.getGraphIndex(index_key) == null) {
                 mgmt.buildIndex(index_key, Vertex.class).addKey(keyRef).buildCompositeIndex()
             }
         }

@@ -106,7 +106,7 @@ class Traversel:
     def has_node(self, node: BaseModel) -> 'Traversel':
         """Check existence of node based on label and its primary_key."""
         # (fixme) Use has(...)
-        self.V().hasLabel(node.vertex_label)
+        self.V()
         for k, v in node.properties.items():
             if k not in node.primary_key:
                 continue

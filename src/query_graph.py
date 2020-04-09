@@ -10,13 +10,13 @@ from src.sanitizer import sanitize
 # (fixme) traversel should start from ecosystem node
 def _query_template():
     return '''
-        g.V().hasLabel('security_event').{security_event_query}.
+        g.V().{security_event_query}.
           as('feedback', 'security_event').
-            outE('triaged_to').inV().hasLabel('probable_vulnerability').{probable_vulnerability_query}.
+            outE('triaged_to').inV().{probable_vulnerability_query}.
           as('probable_vulnerability').
-            outE('affects').inV().hasLabel('dependency_version').
+            outE('affects').inV().
           as('dependency_version').
-            inE('has_version').outV().hasLabel('dependency').{dependency_query}.
+            inE('has_version').outV().{dependency_query}.
           as('dependency').
           select('feedback', 'security_event', 'probable_vulnerability', 'dependency_version', 'dependency').
           by(inE().outV().valueMap().fold()).
