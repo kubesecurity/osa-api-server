@@ -6,6 +6,7 @@ from src.feedback import feedback
 from src.ingestion import ingest_data_into_graph
 from src.query_graph import query_graph
 from src.rest_model import POST_PCVE, GET_PCVE, POST_FEEDBACK, PARSER
+from src.utils import GraphPassThrough
 
 
 @api.route('/api/v1/pcve')
@@ -35,3 +36,14 @@ class Feedback(Resource):
     def post(self):  # pylint: disable=no-self-use
         """Post feedback for an event."""
         return feedback(api.payload)
+
+
+@api.route('/api/v1/graph', methods=['POST'])
+class GraphQuery(Resource):
+    """Abstracts REST end-point routers."""
+
+    @api.doc(False)
+    def post(self):
+        """Endpoint to query graph db properties."""
+        response = GraphPassThrough().fetch_nodes(api.payload)
+        return response
