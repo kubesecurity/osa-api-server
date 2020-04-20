@@ -5,8 +5,8 @@ from src.app import api
 from src.feedback import feedback
 from src.ingestion import ingest_data_into_graph
 from src.query_graph import query_graph
-from src.rest_model import POST_PCVE, GET_PCVE, POST_FEEDBACK, PARSER
-from src.utils import GraphPassThrough
+from src.rest_model import POST_PCVE, GET_PCVE, POST_FEEDBACK, PARSER, POST_GREMLIN
+from src.utils import fetch_nodes
 
 
 @api.route('/api/v1/pcve')
@@ -39,11 +39,11 @@ class Feedback(Resource):
 
 
 @api.route('/api/v1/graph', methods=['POST'])
+@api.doc(False)
 class GraphQuery(Resource):
     """Abstracts REST end-point routers."""
 
-    @api.doc(False)
+    @api.expect(POST_GREMLIN)
     def post(self):
         """Endpoint to query graph db properties."""
-        response = GraphPassThrough().fetch_nodes(api.payload)
-        return response
+        return fetch_nodes(api.payload)

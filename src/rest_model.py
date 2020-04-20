@@ -80,3 +80,7 @@ GET_PCVE = api.model('GET_PCVE', {
     'closed_at': ISO8601Format(attribute=value('security_event.closed_at')),
     'feedback': fields.Nested(GET_FEEDBACK)
 })
+
+POST_GREMLIN = api.model('POST_GREMLIN', {
+    'gremlin': fields.String(description='Gremlin query to be passed')
+})
