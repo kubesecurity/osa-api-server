@@ -1,10 +1,8 @@
 #!/usr/bin/bash
 
-echo "inside entrypoint"
-
 # Wait for the required to be up, before we attempt to start the web-workers.
 URL="http://$GREMLIN_DEFAULT_HOST:$GREMLIN_DEFAULT_PORT"
-echo "$URL"
+echo "Curl Gremlin Server @ $URL"
 while ! curl --data '{"gremlin":"1"}' --output /dev/null --silent --fail "$URL"
 do
     sleep 2 && echo "Waiting for Gremlin HTTP Server..."
@@ -12,7 +10,7 @@ done
 
 echo "Skip schema flag : $SKIP_SCHEMA"
 if [ ! -z "$SKIP_SCHEMA" ]; then
-    echo "Creating schema based on groovy script "
+    echo "Creating schema based on groovy script"
     python3 /app/populate_schema.py
 fi
 
