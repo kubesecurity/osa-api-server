@@ -3,6 +3,22 @@ from enum import Enum
 from typing import get_type_hints, Tuple
 
 
+class EcosystemType(Enum):
+    """Define the ecosystem that security event is part of."""
+    OPENSHIFT = "openshift"
+    KNATIVE = "knative"
+    KUBEVERT = "kubevert"
+
+
+class StatusType(Enum):
+    """Define the status of event."""
+
+    OPENED = "opened"
+    CLOSED = "closed"
+    REOPENED = "reopened"
+    OTHER = "other"
+
+
 class EventType(Enum):
     """Define the eventtype type, possible values: ISSUE/PULL_REQUEST/COMMIT."""
 
@@ -27,6 +43,8 @@ class FeedBackType(Enum):
 
     POSITIVE = "positive"
     NEGATIVE = "negative"
+    NEUTRAL = "neutral"
+    NONE = "none"
 
 
 # pylint: disable=too-few-public-methods
@@ -42,10 +60,11 @@ class BaseModel:
                 'hint for "{}" is {}, actual {}'.format(k, type_hints[k], type(v)))
 
         self.vertex_label = self.__class__.vertex_label  # pylint: disable=no-member
+
         self.properties = {'vertex_label': self.vertex_label, **kwargs}
         primary_key = hasattr(self, 'primary_key')
         if primary_key:
-            primary_key = ('vertex_label', ) + self.primary_key  # pylint: disable=no-member,
+            primary_key = self.primary_key  # pylint: disable=no-member,
             # access-member-before-definition
         else:
             primary_key = tuple(self.properties.keys())
@@ -55,27 +74,12 @@ class BaseModel:
         self.__dict__.update(kwargs)
 
 
-class Dependency(BaseModel):
-    """Model description for Dependency."""
-
-    vertex_label: str = 'dependency'
-    dependency_name: str
-    dependency_path: str
-
-
 class Version(BaseModel):
     """Model description for Version."""
 
     vertex_label: str = 'dependency_version'
     version: str
     dependency_name: str
-
-
-class ProbableCVE(BaseModel):
-    """Model description for ProbableCVE."""
-
-    vertex_label: str = 'probable_vulnerability'
-    probable_vuln_id: str
 
 
 class ReportedCVE(BaseModel):
@@ -98,24 +102,29 @@ class Feedback(BaseModel):
     feedback_url: str
 
 
-class Ecosystem(BaseModel):
-    """Model description for Ecosystem."""
-
-    vertex_label: str = 'ecosystem'
-    ecosystem_name: str
-
-
 class SecurityEvent(BaseModel):
     """Model description for SecurityEvent."""
 
     vertex_label: str = 'security_event'
     primary_key: Tuple[str] = ('url', )
     event_type: EventType
-    body: str
-    title: str
+    # body: str
+    # title: str
     url: str
-    status: str
+    api_url: str
+    status: StatusType
     event_id: str
     created_at: int  # iso8601 datetime
     updated_at: int  # iso8601 datetime
     closed_at: int  # iso8601 datetime
+    repo_name: str
+    repo_path: str
+    ecosystem: EcosystemType
+    probable_cve: bool
+    overall_feedback: FeedBackType
+    feedback_count: int
+    creator_name: str
+    creator_url: str
+    updated_date: int  # yyyyMMdd format
+    updated_yearmonth: int  # yyyyMM format
+    updated_year: int  # yyyy format

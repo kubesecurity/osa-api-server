@@ -1,9 +1,9 @@
 """Ingestion related data handling."""
 
 import re
-from src.graph_model import (Dependency, Version, Ecosystem, EventType,
-                             ProbableCVE, SecurityEvent)
-from src.parse_datetime import from_date_str
+
+from src.graph_model import (Version, EventType, SecurityEvent, FeedBackType, StatusType, EcosystemType)
+from src.parse_datetime import from_date_str, get_date, get_year, get_yearmonth
 
 
 class IngestionData:
@@ -15,24 +15,16 @@ class IngestionData:
         """Init method."""
         self._payload = json_data
         self._sec = None
-
-    @property
-    def dependency(self) -> Dependency:
-        """Create Dependency object from json_data."""
-        return Dependency(dependency_name=self._payload['repo_name'],
-                          dependency_path=self._get_dependency_path())
+        self._update_sec = None
 
     def _timestamp(self, field_name: str):
-        try:
-            return from_date_str(self._payload[field_name])
-        except:
-            return None
+        return from_date_str(self._payload[field_name])
 
     def _updated_at(self) -> int:
         return self._timestamp('updated_at')
 
     def _closed_at(self) -> int:
-        return self._timestamp('closed_at')
+        return self._timestamp('closed_at') if self._payload['closed_at'] is not None else None
 
     def _created_at(self) -> int:
         return self._timestamp('created_at')
@@ -53,26 +45,41 @@ class IngestionData:
                        dependency_name=self._payload['repo_name'])
 
     @property
-    def probable_cve(self) -> ProbableCVE:
-        """Create ProbableCVE object from json_data."""
-        pcve_id = 'PCVE-{repo_name}-{number}'.format(**self._payload)
-        return ProbableCVE(probable_vuln_id=pcve_id)
-
-    @property
-    def ecosystem(self) -> Ecosystem:
-        """Create Ecosystem object from json_data."""
-        return Ecosystem(ecosystem_name=self._payload['ecosystem'])
-
-    @property
     def security_event(self) -> SecurityEvent:
         """Create SecurityEvent object from json_data."""
         self._sec = self._sec or SecurityEvent(event_type=EventType[self._payload['event_type']],
-                                               body=self._payload['url'],
-                                               title=self._payload['url'],
+                                               # body=self._payload['body'],
+                                               # title=self._payload['title'],
                                                url=self._payload['url'],
-                                               status=self._payload['status'],
+                                               api_url=self._payload['api_url'],
+                                               status=StatusType[self._payload['status']],
                                                event_id=str(self._payload['id']),
                                                created_at=self._created_at(),
                                                updated_at=self._updated_at(),
-                                               closed_at=self._closed_at())
+                                               closed_at=self._closed_at(),
+                                               repo_name=self._payload['repo_name'],
+                                               repo_path=self._get_dependency_path(),
+                                               ecosystem=EcosystemType[self._payload['ecosystem']],
+                                               creator_name=self._payload['creator_name'],
+                                               creator_url=self._payload['creator_url'],
+                                               probable_cve=self._payload['probable_cve'],
+                                               updated_date=get_date(self._updated_at()),
+                                               updated_yearmonth=get_yearmonth(self._updated_at()),
+                                               updated_year=get_year(self._updated_at()),
+                                               feedback_count=0,
+                                               overall_feedback=FeedBackType.NONE
+                                               )
         return self._sec
+
+    @property
+    def updated_security_event(self) -> SecurityEvent:
+        """Create SecurityEvent object from json_data."""
+        self._update_sec = self._update_sec or SecurityEvent(status=StatusType[self._payload['status']],
+                                                             updated_at=self._updated_at(),
+                                                             closed_at=self._closed_at(),
+                                                             ecosystem=EcosystemType[self._payload['ecosystem']],
+                                                             probable_cve=self._payload['probable_cve'],
+                                                             updated_date=get_date(self._updated_at()),
+                                                             updated_yearmonth=get_yearmonth(self._updated_at()),
+                                                             updated_year=get_year(self._updated_at()))
+        return self._update_sec

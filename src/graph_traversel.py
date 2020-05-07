@@ -2,9 +2,9 @@
 
 from enum import Enum
 from typing import List
+
+from src.graph_model import (BaseModel, SecurityEvent, Version, Feedback, ReportedCVE)
 from src.sanitizer import sanitize
-from src.graph_model import (BaseModel, SecurityEvent, Dependency, Version,
-                             Feedback, ReportedCVE, ProbableCVE)
 
 
 # (fixme): Use GLV + Driver instead of REST based approach
@@ -122,6 +122,16 @@ class Traversel:
                     self.anonymous().addV(node.vertex_label)))
                 .append(self.anonymous().property(**node.properties)))
 
+    def add_update_unique_node_with_diff_properties(self, node: BaseModel, update_node: BaseModel) -> 'Traversel':
+        """Create node and property only if not exist else update passed properties."""
+        return (self.append(self.anonymous().has_node(node))
+                .append('fold()')
+                .append('coalesce(unfold().{update_property}, {add_vertex}.{add_property})'.format(
+                        update_property=self.anonymous().property(**update_node.properties),
+                        add_vertex=self.anonymous().addV(node.vertex_label),
+                        add_property=self.anonymous().property(**node.properties)
+                        )))
+
     def _add_edge(self, edge_label: str, from_: BaseModel, to: BaseModel) -> 'Traversel':
         # Reg: https://stackoverflow.com/questions/52447308/add-edge-if-not-exist-using-gremlin
         return (self.append(self.anonymous().has_node(from_))
@@ -130,17 +140,12 @@ class Traversel:
                     "addE('{label}').from('{label}'))"
                     .format(label=edge_label)))
 
-    def has_version(self, from_: Dependency, to: Version) -> 'Traversel':
-        """Create has_version edge from |from_| to |to| ."""
-        return self._add_edge('has_version', from_, to)
-
-    def triaged_to(self, from_: SecurityEvent, to: ProbableCVE) -> 'Traversel':
-        """Create triaged_to edge from |from_| to |to| ."""
-        return self._add_edge('triaged_to', from_, to)
-
-    def reported_cve(self, from_: ProbableCVE, to: ReportedCVE) -> 'Traversel':
-        """Create reported_cve edge from |from_| to |to| ."""
-        return self._add_edge('reported_cve', from_, to)
+    def _add_edge_with_property(self, edge_label: str, feedback: str, from_: BaseModel, to: BaseModel) -> 'Traversel':
+        return (self.append(self.anonymous().has_node(from_))
+                .as_(edge_label).has_node(to).append(
+                    "coalesce(__.inE('{label}').where(outV().as('{label}')), "
+                    "addE('{label}').from('{label}').property('feedback_t','{feedback}'))"
+                    .format(label=edge_label, feedback=feedback)))
 
     def affects(self, from_: ReportedCVE, to: Version) -> 'Traversel':
         """Create affects edge from |from_| to |to| ."""
@@ -157,3 +162,12 @@ class Traversel:
     def reinforces(self, from_: Feedback, to: SecurityEvent) -> 'Traversel':
         """Create reinforces edge from |from_| to |to| ."""
         return self._add_edge('reinforces', from_, to)
+
+    def drop_out_edge(self, node: BaseModel) -> 'Traversel':
+        """Drop out edge based on primary key."""
+        self.V()
+        for k, v in node.properties.items():
+            if k in node.primary_key:
+                self.append("has('{}', {})".format(str(k), self._value_encoding(v)))
+        self.append("outE().drop().iterate()")
+        return self
