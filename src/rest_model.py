@@ -107,3 +107,7 @@ GET_FEEDBACK = api.model('GET_FEEDBACK', {
 POST_GREMLIN = api.model('POST_GREMLIN', {
     'gremlin': fields.String(description='Gremlin query to be passed')
 })
+
+POST_GREMLIN = api.model('POST_GREMLIN', {
+    'gremlin': fields.String(description='Gremlin query to be passed')
+})
