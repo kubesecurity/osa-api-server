@@ -38,7 +38,7 @@ def execute_query(query):
     return _READER.toObject(response.json())
 
 
-def get_session_retry(retries=3, backoff_factor=0.5, status_forcelist=(404, 500, 502, 504),
+def get_session_retry(retries=3, backoff_factor=0.3, status_forcelist=(404, 500, 502, 504),
                       session=None):
     """Set HTTP Adapter with retries to session."""
     session = session or requests.Session()

@@ -16,11 +16,13 @@ log = daiquiri.getLogger(__name__)  # pylint: disable=invalid-name
 
 """
 Configure below variables, which are used in test data
+
+Command to ingest sample bulk data : python ingest_data.py
 """
 # Host URL where we can fire all api request
 HOST_URL = "http://localhost:5000"
 # No of total data we wanted to ingest
-NO_OF_REQUEST = 10
+NO_OF_REQUEST = 100
 # index used to create unique url (You can change it if you have already data available for earlier trest run)
 START_INDEX = 1
 # max no of request those can run parallel

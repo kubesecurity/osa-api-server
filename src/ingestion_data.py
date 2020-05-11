@@ -48,8 +48,6 @@ class IngestionData:
     def security_event(self) -> SecurityEvent:
         """Create SecurityEvent object from json_data."""
         self._sec = self._sec or SecurityEvent(event_type=EventType[self._payload['event_type']],
-                                               # body=self._payload['body'],
-                                               # title=self._payload['title'],
                                                url=self._payload['url'],
                                                api_url=self._payload['api_url'],
                                                status=StatusType[self._payload['status']],

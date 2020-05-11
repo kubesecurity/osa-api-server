@@ -6,10 +6,7 @@ from dateutil.parser import isoparse
 
 def from_date_str(str_: str) -> int:
     """Convert iso8601 format string to timestamp."""
-    try:
-        return int(isoparse(str_).timestamp())
-    except:
-        return ""
+    return int(isoparse(str_).timestamp())
 
 
 def get_date(epoch: int) -> int:

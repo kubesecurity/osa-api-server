@@ -118,17 +118,31 @@ async def _main(args):
 
 
 def _parse_args():
-    parser = argparse.ArgumentParser(prog='python', description=textwrap.dedent('''\
+    parser = argparse.ArgumentParser(prog='python',
+                                     description=textwrap.dedent('''\
                                     This script can be used to ingest historical CSV data
                                     into database using API'''))
-    parser.add_argument('csv', help='Glob path of CSV files which has to be ingested into DB', nargs='+')
+    parser.add_argument('csv',
+                        help='Glob path of CSV files which has to be ingested into DB',
+                        nargs='+')
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--insert', type=str, nargs='?', const='http://localhost:5000/api/v1/pcve',
+    group.add_argument('--insert',
+                       type=str,
+                       nargs='?',
+                       const='http://localhost:5000/api/v1/pcve',
                        help='API endpoint to use for the operation')
-    group.add_argument('--feedback', type=str, nargs='?', const='http://localhost:5000/api/v1/feedback',
+    group.add_argument('--feedback',
+                       type=str,
+                       nargs='?',
+                       const='http://localhost:5000/api/v1/feedback',
                        help='API endpoint to use for adding feedback')
-    parser.add_argument('--concurrency', type=int, default=10, help='No of concurrent requests allowed')
-    parser.add_argument('--verbose', '-v', action='store_true', help='increase output verbosity')
+    parser.add_argument('--concurrency',
+                        type=int,
+                        default=10,
+                        help='No of concurrent requests allowed')
+    parser.add_argument('--verbose', '-v',
+                        action='store_true',
+                        help='increase output verbosity')
     return parser.parse_args()
 
 

@@ -53,7 +53,6 @@ class Feedback(Resource):
 class GraphQuery(Resource):
     """Abstracts REST end-point routers."""
 
-    # @api.marshal_list_with(GET_PCVE, skip_none=True)
     @api.expect(POST_GREMLIN)
     def post(self):
         """Endpoint to query graph db properties."""

@@ -24,7 +24,7 @@ def mocked_response():
          "result": {"data": [], "meta": {}}}, 200)
 
 
-@patch("src.utils.requests.post", return_value=mocked_response())
+@patch("src.utils.requests.Session.post", return_value=mocked_response())
 def test_fetch_nodes_invalid_payload(_mock1):
     """Test fetch node method with invalid poayload."""
     resp = fetch_nodes(payload={})
@@ -32,14 +32,14 @@ def test_fetch_nodes_invalid_payload(_mock1):
 
 
 # # TODO need to enable once we will enable strict_check_words in fetch_nodes
-# @patch("src.utils.requests.post", return_value=graph_resp)
+# @patch("src.utils.requests.Session.post", return_value=graph_resp)
 # def test_fetch_nodes_with_error(_mock1):
 #     """Test fetch node method status."""
 #     resp = fetch_nodes(payload={"gremlin": "g.V().has('foo','bar').drop()')"})
 #     assert resp['error'] is not None
 
 
-@patch("src.utils.requests.post", return_value=mocked_response())
+@patch("src.utils.requests.Session.post", return_value=mocked_response())
 def test_fetch_nodes_data_not_none(_mock1):
     """Test fetch node method outcome."""
     query = "g.V().has('name','foo').valueMap();"

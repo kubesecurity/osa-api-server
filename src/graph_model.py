@@ -109,8 +109,6 @@ class SecurityEvent(BaseModel):
     vertex_label: str = 'security_event'
     primary_key: Tuple[str] = ('url', )
     event_type: EventType
-    # body: str
-    # title: str
     url: str
     api_url: str
     status: StatusType
