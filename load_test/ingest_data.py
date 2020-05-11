@@ -112,9 +112,8 @@ def insert_feedback(thread_no, url):
         raw_feedback['identified_cve'] = "csv{id}".format(id=thread_no)
         resp = requests.post(url=ADD_FEDDBACK_URL, data=json.dumps(raw_feedback), headers=headers)
         if resp.status_code != 200:
-            log.info("Failed to add feedback for {id}, code:{code}, msg:{msg}".format(id=thread_no,
-                                                                                   code=str(resp.status_code),
-                                                                                   msg=resp.json().get("message")))
+            log.info("Failed to add feedback for {id}, code:{code}, msg:{msg}"
+                     .format(id=thread_no, code=str(resp.status_code), msg=resp.json().get("message")))
             log.info('Request Failed------Start-------')
             pprint.pprint(json.dumps(raw_feedback))
             log.info('Request Failed------End-------')
@@ -131,9 +130,8 @@ def ingest_data(thread_no, payload_temp):
         if payload_temp['probable_cve'] is True:
             insert_feedback(thread_no, payload_temp['url'])
     else:
-        log.info("Failed to ingest data for {id}, code:{code}, msg:{msg}".format(id=thread_no,
-                                                                              code=str(resp.status_code),
-                                                                              msg=resp.json().get("message")))
+        log.info("Failed to ingest data for {id}, code:{code}, msg:{msg}"
+                 .format(id=thread_no, code=str(resp.status_code), msg=resp.json().get("message")))
         log.info('Request Failed------Start-------')
         pprint.pprint(json.dumps(payload_temp))
         log.info('Request Failed------End-------')

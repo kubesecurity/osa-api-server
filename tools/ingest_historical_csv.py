@@ -34,6 +34,14 @@ async def _insert_df(df, session: ClientSession, url, csv, sem):  # pylint: disa
 async def _add_feedback(df, session: ClientSession, url, csv, sem):  # pylint: disable=invalid-name
     if len(df) < 1:
         return
+
+    log.debug('Feedback record count {count}'.format(count=len(df)))
+
+    # filter data with probable_cve as true, for them only need to add feedback
+    is_probable_cve = True  # need to declare into variable to fix pylint error
+    df = df.loc[df['probable_cve'] == is_probable_cve]
+    log.debug('Filtered feedback record count {count}'.format(count=len(df)))
+
     df['author'] = 'anonymous'
     # typo carried away
     for feedback in ('Feeedback', 'Feedback'):
@@ -82,14 +90,13 @@ def _get_probabled_cve(cve_model_flag: int) -> bool:
 def _update_df(df: pd.DataFrame, file_name: str) -> pd.DataFrame:
     df['ecosystem'] = _get_ecostystem(file_name)
     df['status'] = df.apply(lambda x: _get_status_type(x['status']), axis=1)
+
     if 'cve_model_flag' not in df:
         df['probable_cve'] = True
     else:
         df['probable_cve'] = df.apply(lambda x: _get_probabled_cve(x['cve_model_flag']), axis=1)
 
-    # filter data with probable_cve as true, for them only need to add feedback
-    security_df = df.loc[df['probable_cve'] == True]
-    return security_df.where(pd.notnull(security_df), None)
+    return df.where(pd.notnull(df), None)
 
 
 async def _main(args):
@@ -104,40 +111,24 @@ async def _main(args):
             df = pd.read_csv(csv, index_col=None, header=0)  # pylint: disable=invalid-name
             log.debug('CSV Record count {count}'.format(count=len(df)))
             updated_df = _update_df(df, csv)
-            log.debug('Ingest {} records to DB'.format(len(updated_df)))
-            task = asyncio.ensure_future(func(df=updated_df, session=session, url=url,
-                                              csv=csv, sem=sem))
+            task = asyncio.ensure_future(func(df=updated_df, session=session, url=url, csv=csv, sem=sem))
             tasks.append(task)
         _ = await asyncio.gather(*tasks)
     _report_failures()
 
 
 def _parse_args():
-    parser = argparse.ArgumentParser(prog='python',
-                                     description=textwrap.dedent('''\
+    parser = argparse.ArgumentParser(prog='python', description=textwrap.dedent('''\
                                     This script can be used to ingest historical CSV data
                                     into database using API'''))
-    parser.add_argument('csv',
-                        help='Glob path of CSV files which has to be ingested into DB',
-                        nargs='+')
+    parser.add_argument('csv', help='Glob path of CSV files which has to be ingested into DB', nargs='+')
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--insert',
-                       type=str,
-                       nargs='?',
-                       const='http://localhost:5000/api/v1/pcve',
+    group.add_argument('--insert', type=str, nargs='?', const='http://localhost:5000/api/v1/pcve',
                        help='API endpoint to use for the operation')
-    group.add_argument('--feedback',
-                       type=str,
-                       nargs='?',
-                       const='http://localhost:5000/api/v1/feedback',
+    group.add_argument('--feedback', type=str, nargs='?', const='http://localhost:5000/api/v1/feedback',
                        help='API endpoint to use for adding feedback')
-    parser.add_argument('--concurrency',
-                        type=int,
-                        default=10,
-                        help='No of concurrent requests allowed')
-    parser.add_argument('--verbose', '-v',
-                        action='store_true',
-                        help='increase output verbosity')
+    parser.add_argument('--concurrency', type=int, default=10, help='No of concurrent requests allowed')
+    parser.add_argument('--verbose', '-v', action='store_true', help='increase output verbosity')
     return parser.parse_args()
 
 
