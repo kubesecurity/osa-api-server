@@ -7,10 +7,10 @@ from src.parse_datetime import to_date_str
 from src.sanitizer import unsanitize
 
 POST_PCVE = api.model('PCVE', {
-    'ecosystem': fields.String(description='Ecosystem', enum=EcosystemType.member_names_),
+    'ecosystem': fields.String(description='Ecosystem', enum=EcosystemType._member_names_),
     'repo_name': fields.String(description='Repository Name'),
-    'event_type': fields.String(description='Event Type', enum=EventType.member_names_),
-    'status': fields.String(description='Status', enum=StatusType.member_names_),
+    'event_type': fields.String(description='Event Type', enum=EventType._member_names_),
+    'status': fields.String(description='Status', enum=StatusType._member_names_),
     'url': fields.Url(description='url'),
     'id': fields.String(description='Event Id'),
     'number': fields.Integer('PR/Issue number'),
@@ -46,14 +46,14 @@ class ISO8601Format(fields.Raw):
 
 
 PARSER = reqparse.RequestParser()
-PARSER.add_argument('ecosystem', type=str, choices=EcosystemType.member_names_, default="OPENSHIFT", help='Ecosystem')
+PARSER.add_argument('ecosystem', type=str, choices=EcosystemType._member_names_, default="OPENSHIFT", help='Ecosystem')
 PARSER.add_argument('updated_yearmonth', type=int, action='append',
                     help='Updated month (yyyyMM format), if not supplied will consider current yearmonth')
 PARSER.add_argument('updated_date', type=int, action='append', help='Updated date (yyyyMMdd format)')
 PARSER.add_argument('repo', type=str, action='append', help='Repository name')
-PARSER.add_argument('feedback', type=str, choices=FeedBackType.member_names_, help='Overall Feedback')
-PARSER.add_argument('event_type', type=str, choices=EventType.member_names_, help='Event type')
-PARSER.add_argument('status', type=str, choices=StatusType.member_names_, help='Event status')
+PARSER.add_argument('feedback', type=str, choices=FeedBackType._member_names_, help='Overall Feedback')
+PARSER.add_argument('event_type', type=str, choices=EventType._member_names_, help='Event type')
+PARSER.add_argument('status', type=str, choices=StatusType._member_names_, help='Event status')
 
 
 # had to create a function to overcome linter error
@@ -62,12 +62,12 @@ def _check_overall_feedback(x):
 
 
 GET_PCVE = api.model('GET_PCVE', {
-    'ecosystem': fields.List(fields.String, description='Eco system', enum=EcosystemType.member_names_),
+    'ecosystem': fields.List(fields.String, description='Eco system', enum=EcosystemType._member_names_),
     'repo_name': fields.String(attribute=lambda x: x['repo_name'][0], description='Repository Name',
                                example='org14/repo5'),
     'event_type': fields.String(attribute=lambda x: x['event_type'][0], description='Event Type',
-                                enum=EventType.member_names_),
-    'status': fields.String(attribute=(lambda x: x['status'][0]), description='Status', enum=StatusType.member_names_),
+                                enum=EventType._member_names_),
+    'status': fields.String(attribute=(lambda x: x['status'][0]), description='Status', enum=StatusType._member_names_),
     'url': UnsanitizeStringFormat(attribute=lambda x: x['url'][0],
                                   example='https://github.com/org14/repo5/issues/10742'),
     'event_id': fields.String(attribute=lambda x: x['event_id'][0], description='Event Id from Github'),
@@ -75,7 +75,7 @@ GET_PCVE = api.model('GET_PCVE', {
     'feedback_count': fields.Integer(attribute=lambda x: x['feedback_count'][0],
                                      description='Total received feedback count'),
     'overall_feedback': fields.String(attribute=_check_overall_feedback, description='Overall feddback',
-                                      enum=FeedBackType.member_names_),
+                                      enum=FeedBackType._member_names_),
     'updated_date': fields.Integer(attribute=lambda x: x['updated_date'][0],
                                    description='Updated date (yyyyMMdd format)', example=20200223),
     'created_at': ISO8601Format(attribute=lambda x: x['created_at'][0]),
@@ -92,7 +92,7 @@ POST_FEEDBACK = api.model('POST_FEEDBACK', {
     'comments': fields.String(description='Feedback text'),
     'url': fields.String(description='Github Issue/PR/Commit absolute(fully qualified) URL'),
     'feedback_type': fields.String(description='Feedback type',
-                                   enum=FeedBackType.member_names_)
+                                   enum=FeedBackType._member_names_)
 })
 
 GET_FEEDBACK = api.model('GET_FEEDBACK', {
@@ -100,7 +100,7 @@ GET_FEEDBACK = api.model('GET_FEEDBACK', {
     'comments': UnsanitizeStringFormat(attribute='comments', example='https://github.com/org14/repo5/issues/10742',
                                        description='Feedback text'),
     'feedback_type': fields.String(description='Feedback type',
-                                   enum=FeedBackType.member_names_),
+                                   enum=FeedBackType._member_names_),
 })
 
 
