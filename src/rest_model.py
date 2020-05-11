@@ -46,15 +46,20 @@ class ISO8601Format(fields.Raw):
 
 
 PARSER = reqparse.RequestParser()
-PARSER.add_argument('ecosystem', type=str, choices=EcosystemType.member_names_, default="OPENSHIFT",
-                    help='Ecosystem')
+PARSER.add_argument('ecosystem', type=str, choices=EcosystemType.member_names_, default="OPENSHIFT", help='Ecosystem')
 PARSER.add_argument('updated_yearmonth', type=int, action='append',
                     help='Updated month (yyyyMM format), if not supplied will consider current yearmonth')
 PARSER.add_argument('updated_date', type=int, action='append', help='Updated date (yyyyMMdd format)')
 PARSER.add_argument('repo', type=str, action='append', help='Repository name')
 PARSER.add_argument('feedback', type=str, choices=FeedBackType.member_names_, help='Overall Feedback')
 PARSER.add_argument('event_type', type=str, choices=EventType.member_names_, help='Event type')
-PARSER.add_argument('status', type=str,  choices=StatusType.member_names_, help='Event status')
+PARSER.add_argument('status', type=str, choices=StatusType.member_names_, help='Event status')
+
+
+# had to create a function to overcome linter error
+def _check_overall_feedback(x):
+    return None if 'overall_feedback' not in x else x['overall_feedback'][0]
+
 
 GET_PCVE = api.model('GET_PCVE', {
     'ecosystem': fields.List(fields.String, description='Eco system', enum=EcosystemType.member_names_),
@@ -69,9 +74,8 @@ GET_PCVE = api.model('GET_PCVE', {
     'probable_cve': fields.Boolean(attribute=lambda x: x['probable_cve'][0]),
     'feedback_count': fields.Integer(attribute=lambda x: x['feedback_count'][0],
                                      description='Total received feedback count'),
-    'overall_feedback': fields.String(attribute=
-                                      lambda x: None if 'overall_feedback' not in x else x['overall_feedback'][0],
-                                      description='Overall feddback', enum=FeedBackType.member_names_),
+    'overall_feedback': fields.String(attribute=_check_overall_feedback, description='Overall feddback',
+                                      enum=FeedBackType.member_names_),
     'updated_date': fields.Integer(attribute=lambda x: x['updated_date'][0],
                                    description='Updated date (yyyyMMdd format)', example=20200223),
     'created_at': ISO8601Format(attribute=lambda x: x['created_at'][0]),

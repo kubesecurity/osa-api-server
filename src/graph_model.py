@@ -5,6 +5,7 @@ from typing import get_type_hints, Tuple
 
 class EcosystemType(Enum):
     """Define the ecosystem that security event is part of."""
+
     OPENSHIFT = "openshift"
     KNATIVE = "knative"
     KUBEVERT = "kubevert"

@@ -8,18 +8,18 @@ from src.sanitizer import sanitize
 
 def _query_template():
     return '''
-            {drop_existing_edge}; 
+            {drop_existing_edge};
             {add_feedback_query};
             {update_security_event};'''
 
 
 def _update_security_event_template():
-    return ''' 
+    return '''
             result = g.V().has('url','{url}')
-            .union(inE().count(), inE().hasLabel('reinforces').count(), inE().hasLabel('weakens').count()).toList(); 
+            .union(inE().count(), inE().hasLabel('reinforces').count(), inE().hasLabel('weakens').count()).toList();
             g.V().has('url', '{url}')
             .property('feedback_count', result[0])
-            .property('overall_feedback', result[1]==result[2] ? 'neutral' : 
+            .property('overall_feedback', result[1]==result[2] ? 'neutral' :
                 (result[2] > result[1] ? 'negative': 'positive'))'''
 
 
@@ -33,7 +33,7 @@ def _get_feedback_teamplate():
 
 # this step we need to perform as earlier feedback is positive user uploading new feedback with negative
 # then earlier 'reinforces' edge we need to delete and then we can add new 'weaken' edge
-def _drop_edge_query(feedback_:  Feedback):
+def _drop_edge_query(feedback_: Feedback):
     return str(Traversel().drop_out_edge(feedback_))
 
 
@@ -53,19 +53,22 @@ def _add_feedback_query(feedback_: Feedback):
     return str(g.next())
 
 
-def _update_security_event(payload):
-    return _update_security_event_template().format(url=sanitize(payload['url']))
+def _update_security_event(url: str) -> str:
+    return _update_security_event_template().format(url=sanitize(url))
+
+
+def _get_feedback_query(payload) -> str:
+    feedback_ = Feedback(author=payload['author'], feedback_type=FeedBackType[payload['feedback_type']],
+                         feedback_url=payload['url'], comments=payload['comments'])
+
+    return _query_template().format(drop_existing_edge=_drop_edge_query(feedback_),
+                                    add_feedback_query=_add_feedback_query(feedback_),
+                                    update_security_event=_update_security_event(payload['url']))
 
 
 def add_feedback(payload):
     """Create Feedback node into the graphdb based on data."""
-    feedback_ = Feedback(author=payload['author'], feedback_type=FeedBackType[payload['feedback_type']],
-                         feedback_url=payload['url'], comments=payload['comments'])
-
-    final_query = _query_template().format(drop_existing_edge=_drop_edge_query(feedback_),
-                                           add_feedback_query=_add_feedback_query(feedback_),
-                                           update_security_event=_update_security_event(payload))
-    execute_query(final_query)
+    execute_query(_get_feedback_query(payload))
     return {'status': 'success'}
 
 

@@ -50,19 +50,6 @@ def _get_security_event_query_filters(args: Dict) -> str:
         query.append('''has('updated_yearmonth', within({updated_yearmonth}))'''
                      .format(updated_yearmonth=updated_yearmonth))
 
-    # feedback_available = args['feedback_available']
-    # feedback = args['feedback']
-    # if feedback_available is not None:
-    #     query.append('''has('feedback_count', {condition}))'''.format(
-    #         condition='neq(0)' if feedback_available is True else 'eq(0)'))
-    # elif feedback is not None:
-    #     query.append(
-    #         '''has('overall_feedback', '{overall_feedback}')'''.format(overall_feedback=FeedBackType[feedback].value))
-    #
-    # event_type = args['event_type']
-    # if event_type:
-    #     query.append('''has('event_type', '{event_type}')'''.format(event_type=EventType[event_type].value))
-
     return _identity_or_conditional(query)
 
 
@@ -101,5 +88,4 @@ def query_graph(args: Dict):
     result = execute_query(query)['result']['data']
     log.info("Before filtering other condition data count as {count}".format(count=len(result)))
 
-    updated_result = _filter_data_for_other_condition(args, result)
-    return updated_result
+    return _filter_data_for_other_condition(args, result)
