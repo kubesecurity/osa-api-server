@@ -57,6 +57,41 @@ def _get_executor(args):
     return _insert_df, args.insert
 
 
+def _get_ecostystem(file_name: str) -> str:
+    if 'openshift' in file_name:
+        return 'OPENSHIFT'
+    elif 'knative' in file_name:
+        return 'KNATIVE'
+    elif 'kubevert' in file_name:
+        return 'KUBEVERT'
+    else:
+        None
+
+
+def _get_status_type(status: str) -> str:
+    if status.lower() in ['opened', 'closed', 'reopened']:
+        return status.upper()
+    else:
+        return "OTHER"
+
+
+def _get_probabled_cve(cve_model_flag: int) -> bool:
+    return True if cve_model_flag is not None and cve_model_flag == 1 else False
+
+
+def _update_df(df: pd.DataFrame, file_name: str) -> pd.DataFrame:
+    df['ecosystem'] = _get_ecostystem(file_name)
+    df['status'] = df.apply(lambda x: _get_status_type(x['status']), axis=1)
+    if 'cve_model_flag' not in df:
+        df['probable_cve'] = True
+    else:
+        df['probable_cve'] = df.apply(lambda x: _get_probabled_cve(x['cve_model_flag']), axis=1)
+
+    # filter data with probable_cve as true, for them only need to add feedback
+    security_df = df.loc[df['probable_cve'] == True]
+    return security_df.where(pd.notnull(security_df), None)
+
+
 async def _main(args):
     daiquiri.setup(level=("DEBUG" if args.verbose else "INFO"))
     log.info('invoking ingestion for {} CSV files'.format(len(args.csv)))
@@ -67,8 +102,10 @@ async def _main(args):
         for csv in args.csv:
             log.debug('Convert records in {} to JSON'.format(csv))
             df = pd.read_csv(csv, index_col=None, header=0)  # pylint: disable=invalid-name
-            log.debug('Ingest {} records to DB'.format(len(df)))
-            task = asyncio.ensure_future(func(df=df, session=session, url=url,
+            log.debug('CSV Record count {count}'.format(count=len(df)))
+            updated_df = _update_df(df, csv)
+            log.debug('Ingest {} records to DB'.format(len(updated_df)))
+            task = asyncio.ensure_future(func(df=updated_df, session=session, url=url,
                                               csv=csv, sem=sem))
             tasks.append(task)
         _ = await asyncio.gather(*tasks)
