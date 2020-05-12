@@ -19,6 +19,8 @@ VALUE_TESTDATA = [
         ({'foo': {'bar': [1]}}, 'foo.bar', 1),
         ({'foo': {'bar': ['hello']}}, 'foo.bar', 'hello'),
 ]
+
+
 @pytest.mark.parametrize("obj,key,expected", VALUE_TESTDATA)
 def test_value(obj, key, expected):
     """Test sanitized value."""
@@ -38,6 +40,8 @@ UNSANITIZED_VALUE_TESTDATA = [
         ({'foo': {'bar': 1}}, 'foo.bar', None),
         ({'foo': {'bar': ['hello%20world']}}, 'foo.bar', 'hello world'),
 ]
+
+
 @pytest.mark.parametrize("obj,key,expected", UNSANITIZED_VALUE_TESTDATA)
 def test_unsanitized_value(obj, key, expected):
     """Test unsanitized value."""
