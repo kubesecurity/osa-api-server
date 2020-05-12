@@ -24,7 +24,7 @@ class IngestionData:
         return self._timestamp('updated_at')
 
     def _closed_at(self) -> int:
-        return self._timestamp('closed_at') if self._payload['closed_at'] is not None else None
+        return self._timestamp('closed_at') if self._payload.get('closed_at') else None
 
     def _created_at(self) -> int:
         return self._timestamp('created_at')

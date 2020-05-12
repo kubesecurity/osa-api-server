@@ -23,9 +23,10 @@ def execute(str_gremlin_dsl):
 
     logger.info("Execute Response : {res}".format(res=response))
     if response.status_code != 200:
-        logger.error("ERROR with code: {code}, reason: {reason}, msg: {msg}".format(code=str(response.status_code),
-                                                                                    reason=response.reason,
-                                                                                    msg=json_response.get("message")))
+        logger.error("ERROR with code: {code}, reason: {reason}, msg: {msg}"
+                     .format(code=str(response.status_code),
+                             reason=response.reason,
+                             msg=json_response.get("message")))
         return False, json_response
     else:
         return True, json_response
@@ -35,11 +36,10 @@ def populate_schema():
     """Populate the schema stored in the Groovy script."""
     current_file_path = os.path.dirname(os.path.realpath(__file__))
     schema_file_path = os.path.join(current_file_path, 'scripts/schema.groovy')
-    str_gremlin_dsl = ''''''
+
     with open(schema_file_path, 'r') as f:
         str_gremlin_dsl = f.read()
-
-    return execute(str_gremlin_dsl)
+        return execute(str_gremlin_dsl)
 
 
 def run():

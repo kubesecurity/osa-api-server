@@ -42,7 +42,7 @@ class ISO8601Format(fields.Raw):
 
     def format(self, value):
         """Convert given epoch to iso8601 string."""
-        return None if value is None else to_date_str(value)
+        return to_date_str(value) if value else None
 
 
 PARSER = reqparse.RequestParser()
