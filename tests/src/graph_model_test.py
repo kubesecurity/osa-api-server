@@ -1,6 +1,46 @@
 """To test Graph Traversel."""
-from src.graph_model import BaseModel, Dependency
+from src.graph_model import BaseModel, Feedback, FeedBackType
 from src.graph_traversel import Traversel
+from src.ingestion_data import IngestionData
+from src.sanitizer import sanitize
+
+
+def _get_sample_payload_status_closed():
+    return {
+                 "api_url": "https://api.github.com/repos/org25/repo10/issues/10",
+                 "closed_at": "2020-04-20 15:20:15+00:00",
+                 "created_at": "2020-04-01 15:20:15+00:00",
+                 "creator_name": "user28",
+                 "creator_url": "https://github.com/user28",
+                 "event_type": "PULL_REQUEST",
+                 "id": 10,
+                 "number": 4275,
+                 "repo_name": "org25/repo10",
+                 "status": "CLOSED",
+                 "ecosystem": "KUBEVERT",
+                 "updated_at": "2020-04-20 15:20:15+00:00",
+                 "url": "https://github.com/org25/repo10/issues/10",
+                 "probable_cve": False
+            }
+
+
+def _get_sample_payload_status_opened():
+    return {
+                 "api_url": "https://api.github.com/repos/org25/repo10/issues/10",
+                 "closed_at": None,
+                 "created_at": "2020-04-01 15:20:15+00:00",
+                 "creator_name": "user28",
+                 "creator_url": "https://github.com/user28",
+                 "event_type": "PULL_REQUEST",
+                 "id": 10,
+                 "number": 4275,
+                 "repo_name": "org25/repo10",
+                 "status": "OPENED",
+                 "ecosystem": "KUBEVERT",
+                 "updated_at": "2020-04-20 15:20:15+00:00",
+                 "url": "https://github.com/org25/repo10/issues/10",
+                 "probable_cve": True
+            }
 
 
 def test_empty_traversel():
@@ -48,37 +88,100 @@ def test_append_with_string_step():
     assert str(g0) == "g.addV('hello').and(addV('world')).addV('foo')"
 
 
-def test_add_node_dependency_node():
-    """Test adding dependacy node."""
-    g = Traversel('g')
-    dependency = Dependency(dependency_name='foo', dependency_path='foo.bar/zoo.git')
-    g.add_node(dependency).next()
-    assert ("g.addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
-            ".property('dependency_name', '{dependency_name}')"
-            ".property('dependency_path', '{dependency_path}')"
-            ".next()".format(**dependency.__dict__) == str(g))
+def test_add_update_unique_node_with_diff_properties_status_closed():
+    """Test add/update security node."""
+    pcve = IngestionData(_get_sample_payload_status_closed())
+    se = pcve.security_event
+    g = Traversel()
+    g.add_update_unique_node_with_diff_properties(pcve.security_event, pcve.updated_security_event).next()
+    import pprint
+    pprint.pprint(str(g))
+    assert ("g.V().has('url', '{san_url}')"
+            ".fold()"
+            ".coalesce(unfold()"
+            ".property('vertex_label', '{vertex_label}')"
+            ".property('status', '{e_status}')"
+            ".property('updated_at', {updated_at})"
+            ".property('closed_at', {closed_at})"
+            ".property('ecosystem', '{e_ecosystem}')"
+            ".property('probable_cve', '{probable_cve}')"
+            ".property('updated_date', {updated_date})"
+            ".property('updated_yearmonth', {updated_yearmonth})"
+            ".property('updated_year', {updated_year})"
+            ", "
+            "addV('security_event')"
+            ".property('vertex_label', '{vertex_label}')"
+            ".property('event_type', '{e_event_type}')"
+            ".property('url', '{san_url}')"
+            ".property('api_url', '{san_api_url}')"
+            ".property('status', '{e_status}')"
+            ".property('event_id', '{event_id}')"
+            ".property('created_at', {created_at})"
+            ".property('updated_at', {updated_at})"
+            ".property('closed_at', {closed_at})"
+            ".property('repo_name', '{repo_name}')"
+            ".property('repo_path', '{san_repo_path}')"
+            ".property('ecosystem', '{e_ecosystem}')"
+            ".property('creator_name', '{creator_name}')"
+            ".property('creator_url', '{san_creator_url}')"
+            ".property('probable_cve', '{probable_cve}')"
+            ".property('updated_date', {updated_date})"
+            ".property('updated_yearmonth', {updated_yearmonth})"
+            ".property('updated_year', {updated_year})"
+            ".property('feedback_count', {feedback_count})"
+            ".property('overall_feedback', '{e_overall_feedback}')"
+            ").next()".format(e_status=se.status.value, e_event_type=se.event_type.value,
+                              e_ecosystem=se.ecosystem.value, e_overall_feedback=se.overall_feedback.value,
+                              san_url=sanitize(se.url), san_api_url=sanitize(se.api_url),
+                              san_creator_url=sanitize(se.creator_url), san_repo_path=sanitize(se.repo_path),
+                              **pcve.security_event.__dict__) == str(g))
 
 
-def test_has_version_traversal():
-    """Test has version traversal."""
-    g = Traversel('g')
-    dependency = Dependency(dependency_name='foo', dependency_path='foo.bar/zoo.git')
-    g.add_node(dependency).add_node(dependency).has_version(dependency, dependency).next()
-    assert ("g.addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
-            ".property('dependency_name', '{dependency_name}')"
-            ".property('dependency_path', '{dependency_path}')"
-            ".addV('{vertex_label}').property('vertex_label', '{vertex_label}')"
-            ".property('dependency_name', '{dependency_name}')"
-            ".property('dependency_path', '{dependency_path}')"
-            ".V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
-            ".has('dependency_name', '{dependency_name}')"
-            ".has('dependency_path', '{dependency_path}')"
-            ".as('has_version').V().hasLabel('{vertex_label}')"
-            ".has('vertex_label', '{vertex_label}')"
-            ".has('dependency_name', '{dependency_name}')"
-            ".has('dependency_path', '{dependency_path}')"
-            ".coalesce(__.inE('has_version').where(outV().as('has_version')), addE('has_version')"
-            ".from('has_version')).next()".format(**dependency.__dict__) == str(g))
+def test_add_update_unique_node_with_diff_properties_status_opened():
+    """Test add/update security node with opended status (closed_at should not come in query)."""
+    pcve = IngestionData(_get_sample_payload_status_opened())
+    se = pcve.security_event
+    g = Traversel()
+    g.add_update_unique_node_with_diff_properties(pcve.security_event, pcve.updated_security_event).next()
+    import pprint
+    pprint.pprint(str(g))
+    assert ("g.V().has('url', '{san_url}')"
+            ".fold()"
+            ".coalesce(unfold()"
+            ".property('vertex_label', '{vertex_label}')"
+            ".property('status', '{e_status}')"
+            ".property('updated_at', {updated_at})"
+            ".property('ecosystem', '{e_ecosystem}')"
+            ".property('probable_cve', '{probable_cve}')"
+            ".property('updated_date', {updated_date})"
+            ".property('updated_yearmonth', {updated_yearmonth})"
+            ".property('updated_year', {updated_year})"
+            ", "
+            "addV('security_event')"
+            ".property('vertex_label', '{vertex_label}')"
+            ".property('event_type', '{e_event_type}')"
+            ".property('url', '{san_url}')"
+            ".property('api_url', '{san_api_url}')"
+            ".property('status', '{e_status}')"
+            ".property('event_id', '{event_id}')"
+            ".property('created_at', {created_at})"
+            ".property('updated_at', {updated_at})"
+            ".property('repo_name', '{repo_name}')"
+            ".property('repo_path', '{san_repo_path}')"
+            ".property('ecosystem', '{e_ecosystem}')"
+            ".property('creator_name', '{creator_name}')"
+            ".property('creator_url', '{san_creator_url}')"
+            ".property('probable_cve', '{probable_cve}')"
+            ".property('updated_date', {updated_date})"
+            ".property('updated_yearmonth', {updated_yearmonth})"
+            ".property('updated_year', {updated_year})"
+            ".property('feedback_count', {feedback_count})"
+            ".property('overall_feedback', '{e_overall_feedback}')"
+            ").next()".format(e_status=se.status.value, e_event_type=se.event_type.value,
+                              e_ecosystem=se.ecosystem.value, e_overall_feedback=se.overall_feedback.value,
+                              san_url=sanitize(se.url), san_api_url=sanitize(se.api_url),
+                              san_creator_url=sanitize(se.creator_url), san_repo_path=sanitize(se.repo_path),
+                              **pcve.security_event.__dict__) == str(g))
 
 
 def test_add_unique_node():
@@ -90,7 +193,7 @@ def test_add_unique_node():
     g = Traversel('g')
     foo = Foo(foo='bar')
     g.add_unique_node(foo)
-    assert ("g.V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
+    assert ("g.V().has('vertex_label', '{vertex_label}')"
             ".has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}'))"
             ".property('vertex_label', '{vertex_label}').property('foo', '{foo}')"
             .format(**foo.__dict__) == str(g))
@@ -121,7 +224,20 @@ def test_add_unique_node_with_key():
     g = Traversel('g')
     foo = Foo(foo='bar', bar='zoo')
     g.add_unique_node(foo)
-    assert ("g.V().hasLabel('{vertex_label}').has('vertex_label', '{vertex_label}')"
+    assert ("g.V()"
             ".has('foo', '{foo}').fold().coalesce(unfold(), addV('{vertex_label}'))"
             ".property('vertex_label', '{vertex_label}').property('foo', '{foo}')"
             ".property('bar', '{bar}')".format(**foo.__dict__) == str(g))
+
+
+def test_drop_out_edge_with_primary_key():
+    """Test for drop out edge."""
+    g = Traversel()
+    feedback = Feedback(author="test", feedback_type=FeedBackType.POSITIVE, comments="test comment",
+                        feedback_url="https://api.github.com/repos/org25/repo10/issues/10")
+    g.drop_out_edge(feedback)
+    assert ("g.V()"
+            ".has('author', '{author}')"
+            ".has('feedback_url', '{feedback_url}')"
+            ".outE().drop().iterate()"
+            .format(author=feedback.author, feedback_url=sanitize(feedback.feedback_url)) == str(g))

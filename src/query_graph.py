@@ -1,80 +1,91 @@
 """Implements search from graph API."""
 
-from typing import get_type_hints, Dict, List
+from typing import get_type_hints, Dict
 
-from src.graph_model import SecurityEvent, EventType, Dependency
+from src.graph_model import SecurityEvent, EventType, FeedBackType, EcosystemType, StatusType
 from src.gremlin import execute_query
 from src.sanitizer import sanitize
 
+from src.config import DAIQUIRI_LOG_LEVEL
 
-# (fixme) traversel should start from ecosystem node
+import daiquiri
+
+daiquiri.setup(level=DAIQUIRI_LOG_LEVEL)
+log = daiquiri.getLogger(__name__)
+
+
 def _query_template():
     return '''
-        g.V().hasLabel('security_event').{security_event_query}.
-          as('feedback', 'security_event').
-            outE('triaged_to').inV().hasLabel('probable_vulnerability').{probable_vulnerability_query}.
-          as('probable_vulnerability').
-            outE('affects').inV().hasLabel('dependency_version').
-          as('dependency_version').
-            inE('has_version').outV().hasLabel('dependency').{dependency_query}.
-          as('dependency').
-          select('feedback', 'security_event', 'probable_vulnerability', 'dependency_version', 'dependency').
-          by(inE().outV().valueMap().fold()).
-          by(valueMap()).
-          by(valueMap()).
-          by(valueMap()).
-          by(valueMap())'''
+            g.V()
+            .{security_event_query}
+            .as('security_event').select('security_event')
+            .by(valueMap())'''
 
 
-def _identity_or_conditional(query):
+def _identity_or_conditional(query) -> str:
     return 'identity()' if len(query) == 0 else '.'.join(query)
 
 
 def _get_security_event_query_filters(args: Dict) -> str:
     assert 'updated_at' in get_type_hints(SecurityEvent)
     query = []
-    from_date = args['from_date']
-    to_date = args['to_date']
-    if from_date and to_date:
-        query.append('''has('updated_at', between({from_date}, {to_date}))'''
-                     .format(from_date=from_date, to_date=to_date))
-    event_type = args['event_type']
-    if event_type:
-        query.append('''has('event_type', '{event_type}')'''
-                     .format(event_type=EventType[event_type].value))
 
-    is_probable_cve = args['is_probable_cve']
-    feedback = args['feedback']
-    if is_probable_cve is not None:
-        query.append('''where(inE().hasLabel('{}'))'''
-                     .format('reinforces' if is_probable_cve else 'weakens'))
-    elif feedback is not None:
-        # feedback doesn't make any sense when is_probable_cve is set
-        query.append('where(inE().count().is({}))'.format('gte(1)' if feedback else '0'))
+    ecosystem = args['ecosystem']
+    query.append('''has('ecosystem', '{ecosystem}')'''.format(ecosystem=EcosystemType[ecosystem].value))
 
-    return _identity_or_conditional(query)
+    # will retrive only probable cve data
+    query.append('''has('probable_cve', 1)''')
 
-
-def _get_probable_vuln_query_filters(args: Dict) -> str:  # pylint: disable=unused-argument
-    query = []
-    return _identity_or_conditional(query)
-
-
-def _get_dependency_query_filters(args: Dict) -> str:
-    assert 'dependency_name' in get_type_hints(Dependency)
-    query = []
     repo = args['repo']
     if isinstance(repo, list) and len(repo) > 0:
         repo = sanitize(repo)
-        query.append('''has('dependency_name', within({repo}))'''.format(repo=repo))
+        query.append('''has('repo_name', within({repo}))'''.format(repo=repo))
+
+    updated_dates = args['updated_date']
+    if isinstance(updated_dates, list) and len(updated_dates) > 0:
+        query.append('''has('updated_date', within({updated_dates}))'''.format(updated_dates=updated_dates))
+
+    updated_yearmonth = args['updated_yearmonth']
+    if isinstance(updated_yearmonth, list) and len(updated_yearmonth) > 0:
+        query.append('''has('updated_yearmonth', within({updated_yearmonth}))'''
+                     .format(updated_yearmonth=updated_yearmonth))
+
     return _identity_or_conditional(query)
+
+
+def _filter_data_for_other_condition(args: Dict, data):
+    updated_data = []
+    for item in data:
+
+        if _is_valid_feedback(args, item) and \
+                _is_valid_event_type(args, item) and \
+                _is_valid_status(args, item):
+            updated_data.append(item)
+
+    log.info("After filtering other condition got data count as {count}".format(count=len(updated_data)))
+    return updated_data
+
+
+def _is_valid_feedback(args: Dict, item) -> bool:
+    feedback = args['feedback']
+    return True if feedback is None \
+        else ('overall_feedback' in item and item['overall_feedback'][0]) == FeedBackType[feedback].value
+
+
+def _is_valid_event_type(args: Dict, item) -> bool:
+    event_type = args['event_type']
+    return True if event_type is None else item['event_type'][0] == EventType[event_type].value
+
+
+def _is_valid_status(args: Dict, item) -> bool:
+    status = args['status']
+    return True if status is None else item['status'][0] == StatusType[status].value
 
 
 def query_graph(args: Dict):
     """Retrives graph nodes based on the given criteria."""
-    query: List[str] = _query_template().format(
-        security_event_query=_get_security_event_query_filters(args),
-        probable_vulnerability_query=_get_probable_vuln_query_filters(args),
-        dependency_query=_get_dependency_query_filters(args))
+    query = _query_template().format(security_event_query=_get_security_event_query_filters(args))
     result = execute_query(query)['result']['data']
-    return result
+    log.info("Before filtering other condition data count as {count}".format(count=len(result)))
+
+    return _filter_data_for_other_condition(args, result)

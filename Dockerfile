@@ -17,6 +17,8 @@ RUN microdnf install python3 && pip3 install --upgrade pip &&\
     pip3 install -r /app/requirements.txt && rm /app/requirements.txt
 
 ADD scripts/entrypoint.sh /bin/entrypoint.sh
+ADD scripts/schema.groovy /app/scripts/schema.groovy
+ADD populate_schema.py /app/populate_schema.py
 
 RUN chmod +x /bin/entrypoint.sh
 
