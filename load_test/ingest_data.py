@@ -37,7 +37,7 @@ threadLock2 = threading.Lock()
 
 ids = [*range(START_INDEX, START_INDEX + NO_OF_REQUEST)]
 
-ecosystems = ['OPENSHIFT', 'KNATIVE', 'KUBEVERT', 'OPENSHIFT']
+ecosystems = ['OPENSHIFT', 'KNATIVE', 'KUBEVIRT', 'OPENSHIFT']
 
 repo_names = []
 for i in range(1, 50):

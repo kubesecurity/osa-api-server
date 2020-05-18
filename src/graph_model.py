@@ -8,7 +8,7 @@ class EcosystemType(Enum):
 
     OPENSHIFT = "openshift"
     KNATIVE = "knative"
-    KUBEVERT = "kubevert"
+    KUBEVIRT = "kubevirt"
 
 
 class StatusType(Enum):
