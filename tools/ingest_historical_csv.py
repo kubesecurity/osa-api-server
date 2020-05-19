@@ -70,8 +70,8 @@ def _get_ecostystem(file_name: str) -> str:
         return 'OPENSHIFT'
     elif 'knative' in file_name:
         return 'KNATIVE'
-    elif 'kubevert' in file_name:
-        return 'KUBEVERT'
+    elif 'kubevirt' in file_name:
+        return 'KUBEVIRT'
     else:
         None
 

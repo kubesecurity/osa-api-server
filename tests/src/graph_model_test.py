@@ -17,7 +17,7 @@ def _get_sample_payload_status_closed():
                  "number": 4275,
                  "repo_name": "org25/repo10",
                  "status": "CLOSED",
-                 "ecosystem": "KUBEVERT",
+                 "ecosystem": "KUBEVIRT",
                  "updated_at": "2020-04-20 15:20:15+00:00",
                  "url": "https://github.com/org25/repo10/issues/10",
                  "probable_cve": False
@@ -36,7 +36,7 @@ def _get_sample_payload_status_opened():
                  "number": 4275,
                  "repo_name": "org25/repo10",
                  "status": "OPENED",
-                 "ecosystem": "KUBEVERT",
+                 "ecosystem": "KUBEVIRT",
                  "updated_at": "2020-04-20 15:20:15+00:00",
                  "url": "https://github.com/org25/repo10/issues/10",
                  "probable_cve": True

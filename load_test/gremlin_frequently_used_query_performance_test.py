@@ -55,7 +55,7 @@ feedbacks = ["POSITIVE", "NEGATIVE", "NEUTRAL", "NONE"]
 
 """
 Note: In below all gremlin query we are handcoding "ecosystem"=OPENSHIFT and "probable_cve"=true condition
-- Taking ecosystem as "OPENSHIFT" as we have more data for OPENSHIFT compared to KNATIVE/KUBEVERT
+- Taking ecosystem as "OPENSHIFT" as we have more data for OPENSHIFT compared to KNATIVE/KUBEVIRT
 - External User will always see security_event with "probable_cve" as true.
 """
 
