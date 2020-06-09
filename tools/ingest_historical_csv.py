@@ -21,17 +21,25 @@ def _report_failures():
         log.error("'{}' failed with status '{}'".format(k, v))
 
 
-async def _insert_df(df, session: ClientSession, url, csv, sem):  # pylint: disable=invalid-name
+async def _insert_df(df, url, csv, sem):  # pylint: disable=invalid-name
     objs = df.to_dict(orient='records')
-    for obj in objs:
-        async with sem, session.post(url, json=obj) as response:
-            log.debug('Got response {} for {}'.format(response.status, obj))
-            if response.status != 200:
-                log.error('Error response {}, msg {}, for {}'.format(response.status, await response.text(), obj))
-                _failing_list.update(dict([(csv, response.status)]))
+    tasks = []
+    async with ClientSession() as session:
+        for obj in objs:
+            task = asyncio.ensure_future(_add_data(obj=obj, session=session, url=url, csv=csv, sem=sem))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
 
 
-async def _add_feedback(df, session: ClientSession, url, csv, sem):  # pylint: disable=invalid-name
+async def _add_data(obj, session: ClientSession, url, csv, sem):
+    async with sem, session.post(url, json=obj) as response:
+        log.debug('Got response {} for {}'.format(response.status, obj))
+        if response.status != 200:
+            log.error('Error response {}, msg {}, for {}'.format(response.status, await response.text(), obj))
+            _failing_list.update(dict([(csv, response.status)]))
+
+
+async def _add_feedback(df, url, csv, sem):  # pylint: disable=invalid-name
     if len(df) < 1:
         return
 
@@ -56,7 +64,7 @@ async def _add_feedback(df, session: ClientSession, url, csv, sem):  # pylint: d
     tx_comment = lambda x: ('NEGATIVE' if x.lower().startswith('no') else 'POSITIVE')
     df['feedback_type'] = df['comments'].apply(tx_comment)
     df = df[['author', 'feedback_type', 'comments', 'url']]
-    await _insert_df(df, session, url, csv, sem)
+    await _insert_df(df, url, csv, sem)
 
 
 def _get_executor(args):
@@ -103,15 +111,14 @@ async def _main(args):
     log.info('invoking ingestion for {} CSV files'.format(len(args.csv)))
     func, url = _get_executor(args)
     sem = asyncio.BoundedSemaphore(args.concurrency)
-    async with ClientSession() as session:
-        for csv in args.csv:
-            log.debug('Convert records in {} to JSON'.format(csv))
-            df = pd.read_csv(csv, index_col=None, header=0)  # pylint: disable=invalid-name
-            log.debug('CSV Record count {count}'.format(count=len(df)))
-            updated_df = _update_df(df)
-            # Runnning one file at a time to overcome duplicate issue for similar record across different ecosystem
-            task = asyncio.ensure_future(func(df=updated_df, session=session, url=url, csv=csv, sem=sem))
-            _ = await asyncio.gather(task)
+    for csv in args.csv:
+        log.debug('Convert records in {} to JSON'.format(csv))
+        df = pd.read_csv(csv, index_col=None, header=0)  # pylint: disable=invalid-name
+        log.debug('CSV Record count {count}'.format(count=len(df)))
+        updated_df = _update_df(df)
+        # Runnning one file at a time to overcome duplicate issue for similar record across different ecosystem
+        # though all data inside dataframe/file will be inserted parallel
+        await func(df=updated_df, url=url, csv=csv, sem=sem)
 
     _report_failures()
 
