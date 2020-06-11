@@ -23,12 +23,19 @@ def _report_failures():
 
 async def _insert_df(df, session: ClientSession, url, csv, sem):  # pylint: disable=invalid-name
     objs = df.to_dict(orient='records')
+    tasks = []
     for obj in objs:
-        async with sem, session.post(url, json=obj) as response:
-            log.debug('Got response {} for {}'.format(response.status, obj))
-            if response.status != 200:
-                log.error('Error response {} for {}'.format(response.status, obj))
-                _failing_list.update(dict([(csv, response.status)]))
+        task = asyncio.ensure_future(_add_data(obj=obj, session=session, url=url, csv=csv, sem=sem))
+        tasks.append(task)
+    await asyncio.gather(*tasks)
+
+
+async def _add_data(obj, session: ClientSession, url, csv, sem):
+    async with sem, session.post(url, json=obj) as response:
+        log.debug('Got response {} for {}'.format(response.status, obj))
+        if response.status != 200:
+            log.error('Error response {}, msg {}, for {}'.format(response.status, await response.text(), obj))
+            _failing_list.update(dict([(csv, response.status)]))
 
 
 async def _add_feedback(df, session: ClientSession, url, csv, sem):  # pylint: disable=invalid-name
@@ -65,17 +72,6 @@ def _get_executor(args):
     return _insert_df, args.insert
 
 
-def _get_ecostystem(file_name: str) -> str:
-    if 'openshift' in file_name:
-        return 'OPENSHIFT'
-    elif 'knative' in file_name:
-        return 'KNATIVE'
-    elif 'kubevirt' in file_name:
-        return 'KUBEVIRT'
-    else:
-        None
-
-
 def _get_status_type(status: str) -> str:
     if status.lower() in ['opened', 'closed', 'reopened']:
         return status.upper()
@@ -87,14 +83,24 @@ def _get_probabled_cve(cve_model_flag: int) -> bool:
     return True if cve_model_flag is not None and cve_model_flag == 1 else False
 
 
-def _update_df(df: pd.DataFrame, file_name: str) -> pd.DataFrame:
-    df['ecosystem'] = _get_ecostystem(file_name)
+def _dedupe_data(df: pd.DataFrame) -> pd.DataFrame:
+    # Dedupe check - If similar records present multiple time then take latest record based on updated_at.
+    df['converted_updated_at'] = pd.to_datetime(df.updated_at)
+    df = df.loc[df.groupby('url').converted_updated_at.idxmax(skipna=False)].reset_index(drop=True)
+    df = df.drop(columns=['converted_updated_at'])
+    return df
+
+
+def _update_df(df: pd.DataFrame) -> pd.DataFrame:
+    df['ecosystem'] = df['ecosystem'].str.upper()
     df['status'] = df.apply(lambda x: _get_status_type(x['status']), axis=1)
 
     if 'cve_model_flag' not in df:
         df['probable_cve'] = True
     else:
         df['probable_cve'] = df.apply(lambda x: _get_probabled_cve(x['cve_model_flag']), axis=1)
+
+    df = _dedupe_data(df)
 
     return df.where(pd.notnull(df), None)
 
@@ -104,16 +110,17 @@ async def _main(args):
     log.info('invoking ingestion for {} CSV files'.format(len(args.csv)))
     func, url = _get_executor(args)
     sem = asyncio.BoundedSemaphore(args.concurrency)
+
     async with ClientSession() as session:
-        tasks = []
         for csv in args.csv:
             log.debug('Convert records in {} to JSON'.format(csv))
             df = pd.read_csv(csv, index_col=None, header=0)  # pylint: disable=invalid-name
             log.debug('CSV Record count {count}'.format(count=len(df)))
-            updated_df = _update_df(df, csv)
-            task = asyncio.ensure_future(func(df=updated_df, session=session, url=url, csv=csv, sem=sem))
-            tasks.append(task)
-        _ = await asyncio.gather(*tasks)
+            updated_df = _update_df(df)
+            # Runnning one file at a time to overcome duplicate issue for similar record across different ecosystem
+            # though all data inside dataframe/file will be inserted parallel
+            await func(df=updated_df, session=session, url=url, csv=csv, sem=sem)
+
     _report_failures()
 
 
