@@ -92,15 +92,16 @@ def _dedupe_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _update_df(df: pd.DataFrame) -> pd.DataFrame:
-    df['ecosystem'] = df['ecosystem'].str.upper()
-    df['status'] = df.apply(lambda x: _get_status_type(x['status']), axis=1)
+    if len(df) != 0:
+        df['ecosystem'] = df['ecosystem'].str.upper()
+        df['status'] = df.apply(lambda x: _get_status_type(x['status']), axis=1)
 
-    if 'cve_model_flag' not in df:
-        df['probable_cve'] = True
-    else:
-        df['probable_cve'] = df.apply(lambda x: _get_probabled_cve(x['cve_model_flag']), axis=1)
+        if 'cve_model_flag' not in df:
+            df['probable_cve'] = True
+        else:
+            df['probable_cve'] = df.apply(lambda x: _get_probabled_cve(x['cve_model_flag']), axis=1)
 
-    df = _dedupe_data(df)
+        df = _dedupe_data(df)
 
     return df.where(pd.notnull(df), None)
 
