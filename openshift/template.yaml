@@ -42,6 +42,8 @@ objects:
             value: ${FLASK_LOGGING_LEVEL}
           - name: SKIP_SCHEMA
             value: ${SKIP_SCHEMA}
+          - name: SECURE_DEPLOYMENT
+            value: ${SECURE_DEPLOYMENT}
 
           image: "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}"
           name: osa-api-server
@@ -183,3 +185,9 @@ parameters:
   required: false
   name: SKIP_SCHEMA
   value: "false"
+
+- description: "Flag that helps to set swagger url over http/https based on value"
+  displayName: Deploy over secure Server
+  required: false
+  name: SECURE_DEPLOYMENT
+  value: "true"
