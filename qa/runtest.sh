@@ -51,7 +51,7 @@ $(which pip3) install -r requirements-test.txt
 
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=`pwd` python3 "$(which pytest)" --cov=src/ --cov-report term-missing --cov-fail-under=$COVERAGE_THRESHOLD -vv tests/
 
-#codecov --token=4c49034f-36ec-4e2c-b839-6e0f615aaebe
+codecov --token=4c49034f-36ec-4e2c-b839-6e0f615aaebe
 printf "%stests passed%s\n\n" "${GREEN}" "${NORMAL}"
 
 
