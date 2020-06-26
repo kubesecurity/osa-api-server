@@ -1,17 +1,13 @@
 """Module that encapsulates flask app and flask_restplus api object creation."""
-from flask import Flask, url_for
+from flask import Flask
 from flask_restplus import Api
 
-from src.config import SECURE_DEPLOYMENT
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)  # pylint: disable=invalid-name
 
-if SECURE_DEPLOYMENT:
-    @property
-    def specs_url(self):
-        """Create function to override http/https scheme via Api.specs_url ."""
-        return url_for(self.endpoint('specs'), _external=True, _scheme='https')
-    Api.specs_url = specs_url
+# fix for swagger.json to go over HTTP/HTTPS
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 api = Api(app,  # pylint: disable=invalid-name
           version='1.0',
