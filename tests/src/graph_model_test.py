@@ -20,7 +20,9 @@ def _get_sample_payload_status_closed():
                  "ecosystem": "KUBEVIRT",
                  "updated_at": "2020-04-20 15:20:15+00:00",
                  "url": "https://github.com/org25/repo10/issues/10",
-                 "probable_cve": False
+                 "probable_cve": False,
+                 "title": "test title",
+                 "body": "test body"
             }
 
 
@@ -39,7 +41,9 @@ def _get_sample_payload_status_opened():
                  "ecosystem": "KUBEVIRT",
                  "updated_at": "2020-04-20 15:20:15+00:00",
                  "url": "https://github.com/org25/repo10/issues/10",
-                 "probable_cve": True
+                 "probable_cve": True,
+                 "title": "test title",
+                 "body": "test body"
             }
 
 
@@ -94,13 +98,14 @@ def test_add_update_unique_node_with_diff_properties_status_closed():
     se = pcve.security_event
     g = Traversel()
     g.add_update_unique_node_with_diff_properties(pcve.security_event, pcve.updated_security_event).next()
-    import pprint
-    pprint.pprint(str(g))
+
     assert ("g.V().has('url', '{san_url}')"
             ".fold()"
             ".coalesce(unfold()"
             ".property('vertex_label', '{vertex_label}')"
             ".property('status', '{e_status}')"
+            ".property('title', '{san_title}')"
+            ".property('body', '{san_body}')"
             ".property('updated_at', {updated_at})"
             ".property('closed_at', {closed_at})"
             ".property('ecosystem', '{e_ecosystem}')"
@@ -115,6 +120,8 @@ def test_add_update_unique_node_with_diff_properties_status_closed():
             ".property('url', '{san_url}')"
             ".property('api_url', '{san_api_url}')"
             ".property('status', '{e_status}')"
+            ".property('title', '{san_title}')"
+            ".property('body', '{san_body}')"
             ".property('event_id', '{event_id}')"
             ".property('created_at', {created_at})"
             ".property('updated_at', {updated_at})"
@@ -134,6 +141,7 @@ def test_add_update_unique_node_with_diff_properties_status_closed():
                               e_ecosystem=se.ecosystem.value, e_overall_feedback=se.overall_feedback.value,
                               san_url=sanitize(se.url), san_api_url=sanitize(se.api_url),
                               san_creator_url=sanitize(se.creator_url), san_repo_path=sanitize(se.repo_path),
+                              san_title=sanitize(se.title), san_body=sanitize(se.body),
                               **pcve.security_event.__dict__) == str(g))
 
 
@@ -143,13 +151,14 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
     se = pcve.security_event
     g = Traversel()
     g.add_update_unique_node_with_diff_properties(pcve.security_event, pcve.updated_security_event).next()
-    import pprint
-    pprint.pprint(str(g))
+
     assert ("g.V().has('url', '{san_url}')"
             ".fold()"
             ".coalesce(unfold()"
             ".property('vertex_label', '{vertex_label}')"
             ".property('status', '{e_status}')"
+            ".property('title', '{san_title}')"
+            ".property('body', '{san_body}')"
             ".property('updated_at', {updated_at})"
             ".property('ecosystem', '{e_ecosystem}')"
             ".property('probable_cve', '{probable_cve}')"
@@ -163,6 +172,8 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
             ".property('url', '{san_url}')"
             ".property('api_url', '{san_api_url}')"
             ".property('status', '{e_status}')"
+            ".property('title', '{san_title}')"
+            ".property('body', '{san_body}')"
             ".property('event_id', '{event_id}')"
             ".property('created_at', {created_at})"
             ".property('updated_at', {updated_at})"
@@ -181,6 +192,7 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
                               e_ecosystem=se.ecosystem.value, e_overall_feedback=se.overall_feedback.value,
                               san_url=sanitize(se.url), san_api_url=sanitize(se.api_url),
                               san_creator_url=sanitize(se.creator_url), san_repo_path=sanitize(se.repo_path),
+                              san_title=sanitize(se.title), san_body=sanitize(se.body),
                               **pcve.security_event.__dict__) == str(g))
 
 
