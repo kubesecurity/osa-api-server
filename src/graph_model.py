@@ -112,6 +112,8 @@ class SecurityEvent(BaseModel):
     url: str
     api_url: str
     status: StatusType
+    title: str
+    body: str
     event_id: str
     created_at: int  # iso8601 datetime
     updated_at: int  # iso8601 datetime
