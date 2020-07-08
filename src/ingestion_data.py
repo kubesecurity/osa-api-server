@@ -51,6 +51,8 @@ class IngestionData:
                                                url=self._payload['url'],
                                                api_url=self._payload['api_url'],
                                                status=StatusType[self._payload['status']],
+                                               title=self._payload['title'],
+                                               body=self._payload['body'],
                                                event_id=str(self._payload['id']),
                                                created_at=self._created_at(),
                                                updated_at=self._updated_at(),
@@ -73,6 +75,8 @@ class IngestionData:
     def updated_security_event(self) -> SecurityEvent:
         """Create SecurityEvent object from json_data."""
         self._update_sec = self._update_sec or SecurityEvent(status=StatusType[self._payload['status']],
+                                                             title=self._payload['title'],
+                                                             body=self._payload['body'],
                                                              updated_at=self._updated_at(),
                                                              closed_at=self._closed_at(),
                                                              ecosystem=EcosystemType[self._payload['ecosystem']],
