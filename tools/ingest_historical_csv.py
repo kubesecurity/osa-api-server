@@ -91,6 +91,11 @@ def _dedupe_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _update_cve_data(cves: str) -> list:
+    """update cve data from comma separated string to list."""
+    return cves.split(",") if cves else None
+
+
 def _update_df(df: pd.DataFrame) -> pd.DataFrame:
     if len(df) != 0:
         df['ecosystem'] = df['ecosystem'].str.upper()
@@ -100,6 +105,9 @@ def _update_df(df: pd.DataFrame) -> pd.DataFrame:
             df['probable_cve'] = True
         else:
             df['probable_cve'] = df.apply(lambda x: _get_probabled_cve(x['cve_model_flag']), axis=1)
+
+        df["cves"] = df["cves"].fillna(value="")
+        df.loc[:, "cves"] = df.apply(lambda x: _update_cve_data(x["cves"]), axis=1)
 
         df = _dedupe_data(df)
 

@@ -21,7 +21,8 @@ POST_PCVE = api.model('PCVE', {
     'closed_at': fields.DateTime(dt_format='iso8601'),
     'creator_name': fields.String,
     'creator_url': fields.Url(description='Creator Url'),
-    'probable_cve': fields.Boolean()
+    'probable_cve': fields.Boolean(),
+    'cves': fields.List(fields.String, description='Un-verified CVEs got from title/body')
 })
 
 
@@ -75,8 +76,8 @@ GET_PCVE = api.model('GET_PCVE', {
                                     description='Title for the issue/pr'),
     'body': UnsanitizeStringFormat(attribute=lambda x: None if 'body' not in x else x['body'][0],
                                    description='Description for the issue/pr'),
+    'cves': fields.List(fields.String, description='Un-verified CVEs got from title/body'),
     'event_id': fields.String(attribute=lambda x: x['event_id'][0], description='Event Id from Github'),
-    'probable_cve': fields.Boolean(attribute=lambda x: x['probable_cve'][0]),
     'feedback_count': fields.Integer(attribute=lambda x: x['feedback_count'][0],
                                      description='Total received feedback count'),
     'overall_feedback': fields.String(attribute=_check_overall_feedback, description='Overall feddback',

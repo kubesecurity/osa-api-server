@@ -22,7 +22,8 @@ def _get_sample_payload_status_closed():
                  "url": "https://github.com/org25/repo10/issues/10",
                  "probable_cve": False,
                  "title": "test title",
-                 "body": "test body"
+                 "body": "test body",
+                 "cves": None
             }
 
 
@@ -43,7 +44,8 @@ def _get_sample_payload_status_opened():
                  "url": "https://github.com/org25/repo10/issues/10",
                  "probable_cve": True,
                  "title": "test title",
-                 "body": "test body"
+                 "body": "test body",
+                 "cves": ["CVE-2019-3546", "CVE-2020-3546"]
             }
 
 
@@ -162,6 +164,8 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
             ".property('updated_at', {updated_at})"
             ".property('ecosystem', '{e_ecosystem}')"
             ".property('probable_cve', '{probable_cve}')"
+            ".property('cves', '{cve1}')"
+            ".property('cves', '{cve2}')"
             ".property('updated_date', {updated_date})"
             ".property('updated_yearmonth', {updated_yearmonth})"
             ".property('updated_year', {updated_year})"
@@ -183,6 +187,8 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
             ".property('creator_name', '{creator_name}')"
             ".property('creator_url', '{san_creator_url}')"
             ".property('probable_cve', '{probable_cve}')"
+            ".property('cves', '{cve1}')"
+            ".property('cves', '{cve2}')"
             ".property('updated_date', {updated_date})"
             ".property('updated_yearmonth', {updated_yearmonth})"
             ".property('updated_year', {updated_year})"
@@ -193,6 +199,7 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
                               san_url=sanitize(se.url), san_api_url=sanitize(se.api_url),
                               san_creator_url=sanitize(se.creator_url), san_repo_path=sanitize(se.repo_path),
                               san_title=sanitize(se.title), san_body=sanitize(se.body),
+                              cve1=se.cves[0], cve2=se.cves[1],
                               **pcve.security_event.__dict__) == str(g))
 
 

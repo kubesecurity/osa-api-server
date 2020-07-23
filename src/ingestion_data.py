@@ -63,6 +63,7 @@ class IngestionData:
                                                creator_name=self._payload['creator_name'],
                                                creator_url=self._payload['creator_url'],
                                                probable_cve=self._payload['probable_cve'],
+                                               cves=self._payload['cves'],
                                                updated_date=get_date(self._updated_at()),
                                                updated_yearmonth=get_yearmonth(self._updated_at()),
                                                updated_year=get_year(self._updated_at()),
@@ -81,6 +82,7 @@ class IngestionData:
                                                              closed_at=self._closed_at(),
                                                              ecosystem=EcosystemType[self._payload['ecosystem']],
                                                              probable_cve=self._payload['probable_cve'],
+                                                             cves=self._payload['cves'],
                                                              updated_date=get_date(self._updated_at()),
                                                              updated_yearmonth=get_yearmonth(self._updated_at()),
                                                              updated_year=get_year(self._updated_at()))

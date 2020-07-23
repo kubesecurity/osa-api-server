@@ -91,7 +91,10 @@ class Traversel:
 
     def _props(self, type_: str, **kwargs) -> 'Traversel':
         for k, v in ((k, v) for (k, v) in kwargs.items() if v is not None):
-            self.append("{}('{}', {})".format(type_, str(k), self._value_encoding(v)))
+            if isinstance(v, List):
+                self.append(".".join(["{}('{}', {})".format(type_, str(k), self._value_encoding(item)) for item in v]))
+            else:
+                self.append("{}('{}', {})".format(type_, str(k), self._value_encoding(v)))
         return self
 
     def valueMap(self) -> 'Traversel':
