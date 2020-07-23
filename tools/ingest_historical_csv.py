@@ -92,7 +92,7 @@ def _dedupe_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _update_cve_data(cves: str) -> list:
-    """update cve data from comma separated string to list."""
+    """Update cve data from comma separated string to list."""
     return cves.split(",") if cves else None
 
 
