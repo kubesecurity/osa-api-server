@@ -2,12 +2,10 @@
 
 import daiquiri
 import requests
-import re
 
 from src.config import DAIQUIRI_LOG_LEVEL
 from src.gremlin import execute_query
 
-CVE_REGULAR_EXPRESSION = r"CVE-\d{4}-\d{4,}"
 daiquiri.setup(level=DAIQUIRI_LOG_LEVEL)
 log = daiquiri.getLogger(__name__)
 
@@ -44,9 +42,3 @@ def fetch_nodes(payload: object) -> object:
             raise e
     else:
         return {'warning': 'Invalid payload. Check your payload once again'}
-
-
-def get_cves_from_text(data: str) -> set:
-    """Get the CVEs from the given text."""
-    cves = re.findall(CVE_REGULAR_EXPRESSION, data.upper())
-    return set(cves)

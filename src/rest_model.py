@@ -75,7 +75,7 @@ GET_PCVE = api.model('GET_PCVE', {
                                     description='Title for the issue/pr'),
     'body': UnsanitizeStringFormat(attribute=lambda x: None if 'body' not in x else x['body'][0],
                                    description='Description for the issue/pr'),
-    'cves': fields.List(fields.String, description='Un-verified CVEs got from title/body'),
+    'cves': fields.List(fields.String, description='Un-verified CVE list parsed from title and body'),
     'event_id': fields.String(attribute=lambda x: x['event_id'][0], description='Event Id from Github'),
     'feedback_count': fields.Integer(attribute=lambda x: x['feedback_count'][0],
                                      description='Total received feedback count'),

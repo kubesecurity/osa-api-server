@@ -6,7 +6,13 @@ from src.graph_model import (Version, EventType, SecurityEvent, FeedBackType, St
 from src.parse_datetime import from_date_str, get_date, get_year, get_yearmonth
 from src.config import MAX_STRING_LENGTH
 
-from src.utils import get_cves_from_text
+CVE_REGULAR_EXPRESSION = r"CVE-\d{4}-\d{4,}"
+
+
+def get_cves_from_text(data: str) -> set:
+    """Get the CVEs from the given text."""
+    cves = re.findall(CVE_REGULAR_EXPRESSION, data.upper())
+    return set(cves)
 
 
 class IngestionData:
