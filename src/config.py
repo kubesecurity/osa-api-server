@@ -8,3 +8,5 @@ DAIQUIRI_LOG_LEVEL = os.environ.get('DAIQUIRI_LOG_LEVEL', 'INFO').upper()
 
 GREMLIN_URL = '{scheme}://{host}:{port}'.format(scheme=GREMLIN_SCHEME, host=GREMLIN_DEFAULT_HOST,
                                                 port=GREMLIN_DEFAULT_PORT)
+
+MAX_STRING_LENGTH = int(os.environ.get("MAX_STRING_LENGTH", 2000))

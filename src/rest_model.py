@@ -21,8 +21,7 @@ POST_PCVE = api.model('PCVE', {
     'closed_at': fields.DateTime(dt_format='iso8601'),
     'creator_name': fields.String,
     'creator_url': fields.Url(description='Creator Url'),
-    'probable_cve': fields.Boolean(),
-    'cves': fields.List(fields.String, description='Un-verified CVEs got from title/body')
+    'probable_cve': fields.Boolean()
 })
 
 

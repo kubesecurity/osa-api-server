@@ -129,4 +129,4 @@ class SecurityEvent(BaseModel):
     updated_date: int  # yyyyMMdd format
     updated_yearmonth: int  # yyyyMM format
     updated_year: int  # yyyy format
-    cves: list
+    cves: set
