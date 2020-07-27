@@ -6,13 +6,7 @@ from src.graph_model import (Version, EventType, SecurityEvent, FeedBackType, St
 from src.parse_datetime import from_date_str, get_date, get_year, get_yearmonth
 from src.config import MAX_STRING_LENGTH
 
-CVE_REGULAR_EXPRESSION = r"CVE-\d{4}-\d{4,}"
-
-
-def get_cves_from_text(data: str) -> set:
-    """Get the CVEs from the given text."""
-    cves = re.findall(CVE_REGULAR_EXPRESSION, data.upper())
-    return set(cves)
+_CVE_REGULAR_EXPRESSION = r"CVE-\d{4}-\d{4,}"
 
 
 class IngestionData:
@@ -31,10 +25,15 @@ class IngestionData:
 
     def _get_cves(self):
         """Get the CVEs mentioned from title or body."""
-        txt = self._payload['title']
+        cves = self._get_cves_from_text(self._payload['title'])
         if self._payload['body']:
-            txt = txt + self._payload['body']
-        return get_cves_from_text(txt)
+            cves.extend(self._get_cves_from_text(self._payload['body']))
+        return set(cves)
+
+    @staticmethod
+    def _get_cves_from_text(data: str) -> list:
+        """Get the unique CVEs from the given text."""
+        return re.findall(_CVE_REGULAR_EXPRESSION, data.upper())
 
     def _timestamp(self, field_name: str):
         return from_date_str(self._payload[field_name])
