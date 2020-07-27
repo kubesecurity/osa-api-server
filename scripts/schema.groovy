@@ -101,6 +101,11 @@
             updated_year = mgmt.makePropertyKey('updated_year').dataType(Integer.class).make();
         }
 
+        cves = mgmt.getPropertyKey('cves');
+        if(cves == null) {
+            cves = mgmt.makePropertyKey('cves').dataType(String.class).cardinality(Cardinality.SET).make();
+        }
+
         // Feedback
         author = mgmt.getPropertyKey('author');
         if(author == null) {

@@ -4,6 +4,9 @@ import re
 
 from src.graph_model import (Version, EventType, SecurityEvent, FeedBackType, StatusType, EcosystemType)
 from src.parse_datetime import from_date_str, get_date, get_year, get_yearmonth
+from src.config import MAX_STRING_LENGTH
+
+_CVE_REGULAR_EXPRESSION = r"CVE-\d{4}-\d{4,}"
 
 
 class IngestionData:
@@ -16,6 +19,21 @@ class IngestionData:
         self._payload = json_data
         self._sec = None
         self._update_sec = None
+        self._cves = self._get_cves()
+        if self._payload['body']:
+            self._payload['body'] = self._payload['body'][0:MAX_STRING_LENGTH]
+
+    def _get_cves(self):
+        """Get the CVEs mentioned from title or body."""
+        cves = self._get_cves_from_text(self._payload['title'])
+        if self._payload['body']:
+            cves.extend(self._get_cves_from_text(self._payload['body']))
+        return set(cves)
+
+    @staticmethod
+    def _get_cves_from_text(data: str) -> list:
+        """Get the unique CVEs from the given text."""
+        return re.findall(_CVE_REGULAR_EXPRESSION, data.upper())
 
     def _timestamp(self, field_name: str):
         return from_date_str(self._payload[field_name])
@@ -63,6 +81,7 @@ class IngestionData:
                                                creator_name=self._payload['creator_name'],
                                                creator_url=self._payload['creator_url'],
                                                probable_cve=self._payload['probable_cve'],
+                                               cves=self._cves,
                                                updated_date=get_date(self._updated_at()),
                                                updated_yearmonth=get_yearmonth(self._updated_at()),
                                                updated_year=get_year(self._updated_at()),
@@ -81,6 +100,7 @@ class IngestionData:
                                                              closed_at=self._closed_at(),
                                                              ecosystem=EcosystemType[self._payload['ecosystem']],
                                                              probable_cve=self._payload['probable_cve'],
+                                                             cves=self._cves,
                                                              updated_date=get_date(self._updated_at()),
                                                              updated_yearmonth=get_yearmonth(self._updated_at()),
                                                              updated_year=get_year(self._updated_at()))

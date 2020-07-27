@@ -4,6 +4,8 @@ from src.graph_traversel import Traversel
 from src.ingestion_data import IngestionData
 from src.sanitizer import sanitize
 
+import re
+
 
 def _get_sample_payload_status_closed():
     return {
@@ -22,7 +24,7 @@ def _get_sample_payload_status_closed():
                  "url": "https://github.com/org25/repo10/issues/10",
                  "probable_cve": False,
                  "title": "test title",
-                 "body": "test body"
+                 "body": "test body without any CVE"
             }
 
 
@@ -43,7 +45,48 @@ def _get_sample_payload_status_opened():
                  "url": "https://github.com/org25/repo10/issues/10",
                  "probable_cve": True,
                  "title": "test title",
-                 "body": "test body"
+                 "body": "test body With CVE CVE-2019-3546 & CVE-2019-3546"
+            }
+
+
+def _get_sample_payload_with_cve_text():
+    return {
+                 "api_url": "https://api.github.com/repos/org25/repo10/issues/10",
+                 "closed_at": "2020-04-20 15:20:15+00:00",
+                 "created_at": "2020-04-01 15:20:15+00:00",
+                 "creator_name": "user28",
+                 "creator_url": "https://github.com/user28",
+                 "event_type": "PULL_REQUEST",
+                 "id": 10,
+                 "number": 4275,
+                 "repo_name": "org25/repo10",
+                 "status": "CLOSED",
+                 "ecosystem": "KUBEVIRT",
+                 "updated_at": "2020-04-20 15:20:15+00:00",
+                 "url": "https://github.com/org25/repo10/issues/10",
+                 "probable_cve": False,
+                 "title": "test title CVE-2014-0999",
+                 "body": """
+                            -----Valid CVEs-----
+                            CVE-2014-0001
+                            CVE-2014-0999  - Duplicate with title cve
+                            CVE-2014-10000
+                            CVE-2014-10000  - Duplicate with above
+                            CVE-2014-100000
+                            CVE-2014-1000000
+                            CVE-2014-100000000
+                            CVE-2019-111111111
+                            CVE-2019-456132
+                            CVE-2019-54321
+                            CVE-2020-65537
+                            CVE-2020-7654321
+                            cve-1234-1234 - It's a valid CVE as we are converting text to uppercase for retriving CVEs
+                            -----Invalid CVEs Text-----
+                            CVE-0a34-9823
+                            CVE-2019-998a
+                            CVE-2020
+                            CVE-123-1234
+                            """
             }
 
 
@@ -162,6 +205,7 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
             ".property('updated_at', {updated_at})"
             ".property('ecosystem', '{e_ecosystem}')"
             ".property('probable_cve', '{probable_cve}')"
+            ".property('cves', '{cve1}')"
             ".property('updated_date', {updated_date})"
             ".property('updated_yearmonth', {updated_yearmonth})"
             ".property('updated_year', {updated_year})"
@@ -183,6 +227,7 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
             ".property('creator_name', '{creator_name}')"
             ".property('creator_url', '{san_creator_url}')"
             ".property('probable_cve', '{probable_cve}')"
+            ".property('cves', '{cve1}')"
             ".property('updated_date', {updated_date})"
             ".property('updated_yearmonth', {updated_yearmonth})"
             ".property('updated_year', {updated_year})"
@@ -192,7 +237,7 @@ def test_add_update_unique_node_with_diff_properties_status_opened():
                               e_ecosystem=se.ecosystem.value, e_overall_feedback=se.overall_feedback.value,
                               san_url=sanitize(se.url), san_api_url=sanitize(se.api_url),
                               san_creator_url=sanitize(se.creator_url), san_repo_path=sanitize(se.repo_path),
-                              san_title=sanitize(se.title), san_body=sanitize(se.body),
+                              san_title=sanitize(se.title), san_body=sanitize(se.body), cve1=se.cves.pop(),
                               **pcve.security_event.__dict__) == str(g))
 
 
@@ -253,3 +298,21 @@ def test_drop_out_edge_with_primary_key():
             ".has('feedback_url', '{feedback_url}')"
             ".outE().drop().iterate()"
             .format(author=feedback.author, feedback_url=sanitize(feedback.feedback_url)) == str(g))
+
+
+def test_get_cves_from_text():
+    """Test the retriving CVE logic."""
+    pcve = IngestionData(_get_sample_payload_with_cve_text())
+    g = Traversel()
+    g.add_update_unique_node_with_diff_properties(pcve.security_event, pcve.updated_security_event).next()
+    query = str(g)
+
+    # Total 24 cves in poperty adding string : 12 in insert query and 12 in update query
+    assert len(re.findall(".property\\('cves'", query)) == 24
+
+    # As 'CVE-2014-0999' is present in title and description but we should get unique data
+    # Getting one for insert and one for update query
+    assert len(re.findall(".property\\('cves', 'CVE-2014-0999'\\)", query)) == 2
+
+    # Invalid cve, should not get in string
+    assert ".property\\('cves', 'CVE-123-1234'\\)" not in query

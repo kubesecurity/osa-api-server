@@ -42,7 +42,8 @@ objects:
             value: ${FLASK_LOGGING_LEVEL}
           - name: SKIP_SCHEMA
             value: ${SKIP_SCHEMA}
-
+          - name: MAX_STRING_LENGTH
+            value: ${MAX_STRING_LENGTH}
           image: "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}"
           name: osa-api-server
           ports:
@@ -183,3 +184,9 @@ parameters:
   required: false
   name: SKIP_SCHEMA
   value: "false"
+
+- description: "Max character limit that we are allowing for string such as 'body' while saving data in the db."
+  displayName: Max string length for saving string data
+  required: true
+  name: MAX_STRING_LENGTH
+  value: "2000"

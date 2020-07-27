@@ -89,9 +89,18 @@ class Traversel:
         """Use a variable size list of properties to get back a .property() querystring."""
         return self._props('property', **kwargs)
 
+    def _add_set_properties(self, type_: str, name: str, data: set) -> 'Traversel':
+        """For each set values add separate property string."""
+        if len(data) > 0:
+            self.append(".".join(["{}('{}', {})".format(type_, name, self._value_encoding(item)) for item in data]))
+        return self
+
     def _props(self, type_: str, **kwargs) -> 'Traversel':
         for k, v in ((k, v) for (k, v) in kwargs.items() if v is not None):
-            self.append("{}('{}', {})".format(type_, str(k), self._value_encoding(v)))
+            if type(v) is set:
+                self._add_set_properties(type_, k, v)
+            else:
+                self.append("{}('{}', {})".format(type_, str(k), self._value_encoding(v)))
         return self
 
     def valueMap(self) -> 'Traversel':
