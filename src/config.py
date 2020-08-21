@@ -10,3 +10,5 @@ GREMLIN_URL = '{scheme}://{host}:{port}'.format(scheme=GREMLIN_SCHEME, host=GREM
                                                 port=GREMLIN_DEFAULT_PORT)
 
 MAX_STRING_LENGTH = int(os.environ.get("MAX_STRING_LENGTH", 2000))
+
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")

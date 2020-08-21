@@ -44,6 +44,11 @@ objects:
             value: ${SKIP_SCHEMA}
           - name: MAX_STRING_LENGTH
             value: ${MAX_STRING_LENGTH}
+          - name: SENTRY_DSN
+            valueFrom:
+              secretKeyRef:
+                name: osa
+                key: sentry_dsn
           image: "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}"
           name: osa-api-server
           ports:
