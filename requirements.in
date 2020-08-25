@@ -6,3 +6,4 @@ gremlinpython
 gunicorn
 python-dateutil
 requests
+sentry-sdk[flask]
