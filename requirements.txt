@@ -4,38 +4,77 @@
 #
 #    pip-compile requirements.in
 #
-aenum==2.2.3              # via gremlinpython
-aniso8601==8.0.0          # via flask-restplus
-attrs==19.3.0             # via jsonschema
-blinker==1.4              # via sentry-sdk
-certifi==2019.11.28       # via requests, sentry-sdk
-chardet==3.0.4            # via requests
-click==7.0                # via flask
-daiquiri==2.0.0           # via -r requirements.in
-flask-restplus==0.13.0    # via -r requirements.in
-flask-swagger-ui==3.20.9  # via -r requirements.in
-flask==1.1.1              # via -r requirements.in, flask-restplus, flask-swagger-ui, sentry-sdk
-gremlinpython==3.4.4      # via -r requirements.in
-gunicorn==20.0.4          # via -r requirements.in
-idna==2.8                 # via requests
-importlib-metadata==1.3.0  # via jsonschema
-isodate==0.6.0            # via gremlinpython
-itsdangerous==1.1.0       # via flask
-jinja2==2.10.3            # via flask
-jsonschema==3.2.0         # via flask-restplus
-markupsafe==1.1.1         # via jinja2
-more-itertools==8.0.2     # via zipp
-pyrsistent==0.15.6        # via jsonschema
-python-dateutil==2.8.1    # via -r requirements.in
-python-json-logger==0.1.11  # via daiquiri
-pytz==2019.3              # via flask-restplus
-requests==2.22.0          # via -r requirements.in
-sentry-sdk[flask]==0.16.5  # via -r requirements.in
-six==1.13.0               # via flask-restplus, gremlinpython, isodate, jsonschema, pyrsistent, python-dateutil
-tornado==4.5.3            # via gremlinpython
-urllib3==1.25.8           # via requests, sentry-sdk
-werkzeug==0.16.0          # via flask
-zipp==0.6.0               # via importlib-metadata
+aenum==2.2.3
+    # via gremlinpython
+aniso8601==8.0.0
+    # via flask-restplus
+attrs==19.3.0
+    # via jsonschema
+blinker==1.4
+    # via sentry-sdk
+certifi==2022.12.7
+    # via
+    #   requests
+    #   sentry-sdk
+chardet==3.0.4
+    # via requests
+click==7.0
+    # via flask
+daiquiri==2.0.0
+    # via -r requirements.in
+flask==1.1.1
+    # via
+    #   -r requirements.in
+    #   flask-restplus
+    #   flask-swagger-ui
+    #   sentry-sdk
+flask-restplus==0.13.0
+    # via -r requirements.in
+flask-swagger-ui==3.20.9
+    # via -r requirements.in
+gremlinpython==3.4.4
+    # via -r requirements.in
+gunicorn==20.0.4
+    # via -r requirements.in
+idna==2.8
+    # via requests
+isodate==0.6.0
+    # via gremlinpython
+itsdangerous==1.1.0
+    # via flask
+jinja2==2.10.3
+    # via flask
+jsonschema==3.2.0
+    # via flask-restplus
+markupsafe==1.1.1
+    # via jinja2
+pyrsistent==0.15.6
+    # via jsonschema
+python-dateutil==2.8.1
+    # via -r requirements.in
+python-json-logger==0.1.11
+    # via daiquiri
+pytz==2019.3
+    # via flask-restplus
+requests==2.22.0
+    # via -r requirements.in
+sentry-sdk[flask]==0.16.5
+    # via -r requirements.in
+six==1.13.0
+    # via
+    #   flask-restplus
+    #   gremlinpython
+    #   isodate
+    #   jsonschema
+    #   python-dateutil
+tornado==4.5.3
+    # via gremlinpython
+urllib3==1.25.8
+    # via
+    #   requests
+    #   sentry-sdk
+werkzeug==0.16.0
+    # via flask
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
